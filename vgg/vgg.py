@@ -108,7 +108,7 @@ sess.run(tf.initialize_all_variables())
 for i in range(2000):
     batch=mnist.train.next_batch(50)
     if i%100==0:
-        train_loss, train_accur = sess.run([loss, accur], feed_dict={X:batch[0], Y:barch[1]})
+        train_loss, train_accur = sess.run([loss, accur], feed_dict={X:batch[0], Y:batch[1]})
         '''
         train_accuracy=accur.eval(feed_dict={X:batch[0],Y:batch[1]})
         '''
