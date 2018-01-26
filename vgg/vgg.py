@@ -93,7 +93,8 @@ h5 = conv_maxpool(h4, W5, B5)
 h5_flat = tf.reshape(h5, [-1, 512])
 h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
 h_fc2 = tf.nn.relu(tf.matmul(h_fc1, w_fc2) + b_fc2)
-y = tf.nn.relu(tf.matmul(h_fc2, w_fc3) + b_fc3)
+y = tf.matmul(h_fc2, w_fc3) + b_fc3
+#y = tf.nn.relu(tf.matmul(h_fc2, w_fc3) + b_fc3)
 #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, w_fc3) + b_fc3)
 #y = tf.nn.softmax(h_fc3)
 
