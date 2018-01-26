@@ -1,10 +1,32 @@
+'''
 from tensorflow.examples.tutorials.mnist import input_data
 mnist=input_data.read_data_sets('./sample/MNIST_data', one_hot=True)
+'''
+import pickle
+import os
+import os.path
 import tensorflow as tf
+
+### data loading ###
+def unpickle(file):
+    with open(file,'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict[b'lables'], dict[b'data']
+
+path = '../data/cifat-10-batches.py/'
+labels = []
+datas = []
+for fname in os.listdir(path):
+    fpath = os.path.join(path, fname)
+    _label, _data = unpickle(fpath)
+    labels += _label
+    datas += _data
+print('len label', len(labels))
+print('len data', len(datas))
 
 ### input ###
 sess = tf.InteractiveSession()
-X = tf.placeholder(tf.float32, shape=[None, 784])
+X = tf.placeholder(tf.float32, shape=[None, 3*32*32])
 Y = tf.placeholder(tf.float32, shape=[None, 10])
 
 ### function definition ###
@@ -52,21 +74,8 @@ def conv_maxpool(x, filter_list, bias_list):
     x = maxpool(x)
     return x
 
-'''
-W1_1, W1_2 = make_filter_2(3, 64)
-B1_1, B1_2 = maek_bias_2(64)
-W2_1, W2_2 = make_filter_2(64, 128)
-B2_1, B2_2 = maek_bias_2(128)
-W3_1, W3_2, W3_3 = make_filter_3(128, 256)
-B3_1, B3_2, B3_3 = maek_bias_3(256)
-W4_1, W4_2, W4_3 = make_filter_3(256, 512)
-B4_1, B4_2, B4_3 = maek_bias_3(512)
-W5_1, W5_2, W5_3 = make_filter_3(512, 512)
-B5_1, B5_2, B5_3 = maek_bias_3(512)
-'''
 ### weight & bias setting ###
-W1 = list(make_filter_2(1, 64)) # for MNIST
-#W1 = list(make_filter_2(3, 64))
+W1 = list(make_filter_2(3, 64))
 B1 = list(make_bias_2(64))
 W2 = list(make_filter_2(64, 128))
 B2 = list(make_bias_2(128))
@@ -83,8 +92,7 @@ b_fc2 = bias_variable([512])
 w_fc3 = weight_variable([512, 10])
 b_fc3 = bias_variable([10])
 
-x = tf.reshape(X, [-1,28,28,1]) # for MNIST
-#x = tf.reshape(X, [-1,32,32,1])
+x = tf.reshape(X, [-1,32,32,3])
 h1 = conv_maxpool(x, W1, B1)
 h2 = conv_maxpool(h1, W2, B2)
 h3 = conv_maxpool(h2, W3, B3)
@@ -104,7 +112,7 @@ loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y
 train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
 accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
-sess.run(tf.initialize_all_variables())
+sess.run(tf.global_variables_initializer())
 
 for i in range(2000):
     batch=mnist.train.next_batch(50)
