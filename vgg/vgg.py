@@ -11,12 +11,20 @@ import tensorflow as tf
 num_epoch = 5
 batch_size = 50
 learning_rate = 1e-4
+num_labels = 10
 
 ### data loading ###
 def unpickle(file):
     with open(file,'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict[b'labels'], dict[b'data']
+
+def one_hot(label):
+    zero = [0 for _ in range(num_labels)]
+    for i in range(len(label)):
+        tmp = zero.copy()
+        tmp[label[i]] = 1
+        label[i] = tmp
 
 path = '../data/cifar-10-batches-py/'
 
@@ -27,6 +35,7 @@ test_datas = []
 for fname in os.listdir(path):
     fpath = os.path.join(path, fname)
     _label, _data = unpickle(fpath)
+    one_hot(_label)
     print('load', fname)
     if fname == 'test_batch': 
         test_labels.append(_label)
@@ -131,7 +140,7 @@ for epoch in range(num_epoch):
     for index in range(len(train_datas)):
         data = train_datas[index]
         label = train_labels[index]
-        for i in range(len(train_data)//batch_size):
+        for i in range(len(data)//batch_size):
             input_data = data[batch_size * i : batch_size * (i+1)]
             input_label = label[batch_size * i : batch_size * (i+1)]
             if i%100==0:
