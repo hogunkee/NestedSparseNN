@@ -7,6 +7,11 @@ import os
 import os.path
 import tensorflow as tf
 
+### config ###
+num_epoch = 5
+batch_size = 50
+learning_rate = 1e-4
+
 ### data loading ###
 def unpickle(file):
     with open(file,'rb') as fo:
@@ -23,15 +28,12 @@ for fname in os.listdir(path):
     fpath = os.path.join(path, fname)
     _label, _data = unpickle(fpath)
     print('load', fname)
-    if fname == 'text_batch': 
-
+    if fname == 'test_batch': 
+        test_labels.append(_label)
+        test_datas.append(_data)
     else:
-        labels.append(_label)
-        datas.append(_data)
-print('len label', len(labels))
-print(len(labels[0]))
-print('len data', len(datas))
-print(len(datas[0]))
+        train_labels.append(_label)
+        train_datas.append(_data)
 
 ### input ###
 sess = tf.InteractiveSession()
@@ -118,21 +120,27 @@ y = tf.matmul(h_fc2, w_fc3) + b_fc3
 ### train & evaluate ###
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
 #loss = -tf.reduce_sum(y_ * tf.log(y))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
+train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+#train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
 accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 sess.run(tf.global_variables_initializer())
 
-for i in range(2000):
-    batch=mnist.train.next_batch(50)
-    if i%100==0:
-        train_loss, train_accur = sess.run([loss, accur], feed_dict={X:batch[0], Y:batch[1]})
-        '''
-        train_accuracy=accur.eval(feed_dict={X:batch[0],Y:batch[1]})
-        '''
-        print("step %d, training accuracy %g, loss %g"%(i, train_accur, train_loss))
-    train_step.run(feed_dict={X:batch[0],Y:batch[1]})
+for epoch in range(num_epoch):
+    print("epoch %d" % (epoch+1))
+    for index in range(len(train_datas)):
+        data = train_datas[index]
+        label = train_labels[index]
+        for i in range(len(train_data)//batch_size):
+            input_data = data[batch_size * i : batch_size * (i+1)]
+            input_label = label[batch_size * i : batch_size * (i+1)]
+            if i%100==0:
+                train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+                print("step %d, training accuracy %g, loss %g"%(i, train_accur, train_loss))
+            train_step.run(feed_dict={X:input_data,Y:input_label})
 
-print("test accuracy %g" %accur.eval(feed_dict={
-    X:mnist.test.images,Y: mnist.test.labels}))
-
+for index in range(len(test_datas)):
+    data = test_datas[index]
+    label = test_labels[index]
+    print("test accuracy %g" %accur.eval(feed_dict={
+        X:data,Y:label}))
