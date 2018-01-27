@@ -2,6 +2,7 @@
 from tensorflow.examples.tutorials.mnist import input_data
 mnist=input_data.read_data_sets('./sample/MNIST_data', one_hot=True)
 '''
+import random
 import pickle
 import os
 import os.path
@@ -47,6 +48,12 @@ for fname in os.listdir(path):
         else:
             train_labels = train_labels + _label
             train_datas = np.concatenate((train_datas, _data))
+'''
+tmp = list(zip(train_datas, train_labels))
+random.shuffle(tmp)
+train_datas, train_labels = zip(*tmp)
+'''
+
 one_hot(train_labels)
 one_hot(test_labels)
 
