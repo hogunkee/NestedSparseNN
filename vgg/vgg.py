@@ -5,6 +5,7 @@ mnist=input_data.read_data_sets('./sample/MNIST_data', one_hot=True)
 import pickle
 import os
 import os.path
+import numpy as np
 import tensorflow as tf
 
 ### config ###
@@ -35,14 +36,19 @@ test_datas = []
 for fname in os.listdir(path):
     fpath = os.path.join(path, fname)
     _label, _data = unpickle(fpath)
-    one_hot(_label)
     print('load', fname)
     if fname == 'test_batch': 
-        test_labels.append(_label)
-        test_datas.append(_data)
+        test_labels = _label
+        test_datas = _data
     else:
-        train_labels.append(_label)
-        train_datas.append(_data)
+        if train_labels==[]:
+            train_labels = _label
+            train_datas = _data
+        else:
+            train_labels = train_labels + _label
+            train_datas = np.concatenate((train_datas, _data))
+one_hot(train_labels)
+one_hot(test_labels)
 
 ### input ###
 sess = tf.InteractiveSession()
@@ -137,19 +143,14 @@ sess.run(tf.global_variables_initializer())
 
 for epoch in range(num_epoch):
     print("epoch %d" % (epoch+1))
-    for index in range(len(train_datas)):
-        data = train_datas[index]
-        label = train_labels[index]
-        for i in range(len(data)//batch_size):
-            input_data = data[batch_size * i : batch_size * (i+1)]
-            input_label = label[batch_size * i : batch_size * (i+1)]
-            if i%100==0:
-                train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-                print("step %d, training accuracy %g, loss %g"%(i, train_accur, train_loss))
-            train_step.run(feed_dict={X:input_data,Y:input_label})
+    for i in range(len(train_datas)//batch_size):
+        input_data = train_datas[batch_size * i : batch_size * (i+1)]
+        input_label = train_labels[batch_size * i : batch_size * (i+1)]
+        if i%100==0:
+            train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+            print("step %d, training accuracy %g, loss %g"%(i, train_accur, train_loss))
+        train_step.run(feed_dict={X:input_data,Y:input_label})
 
-for index in range(len(test_datas)):
-    data = test_datas[index]
-    label = test_labels[index]
-    print("test accuracy %g" %accur.eval(feed_dict={
-        X:data,Y:label}))
+print("test accuracy %g" %accur.eval(feed_dict={
+    X:test_datas,Y:test_labels}))
+
