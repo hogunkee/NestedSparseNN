@@ -12,7 +12,7 @@ import tensorflow as tf
 ### config ###
 num_epoch = 5
 batch_size = 50
-learning_rate = 1e-4
+learning_rate = 1e-5
 num_labels = 10
 
 ### data loading ###
@@ -48,14 +48,17 @@ for fname in os.listdir(path):
         else:
             train_labels = train_labels + _label
             train_datas = np.concatenate((train_datas, _data))
-'''
+print(train_labels[:5])
 tmp = list(zip(train_datas, train_labels))
 random.shuffle(tmp)
 train_datas, train_labels = zip(*tmp)
-'''
+train_datas = list(train_datas)
+train_labels = list(train_labels)
 
 one_hot(train_labels)
 one_hot(test_labels)
+print('train data length: %d' %(len(train_labels)))
+print('test data length: %d' %(len(test_labels)))
 
 ### input ###
 sess = tf.InteractiveSession()
