@@ -11,18 +11,27 @@ import tensorflow as tf
 def unpickle(file):
     with open(file,'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
-    return dict[b'lables'], dict[b'data']
+    return dict[b'labels'], dict[b'data']
 
-path = '../data/cifat-10-batches.py/'
-labels = []
-datas = []
+path = '../data/cifar-10-batches-py/'
+
+train_labels = []
+train_datas = []
+test_labels = []
+test_datas = []
 for fname in os.listdir(path):
     fpath = os.path.join(path, fname)
     _label, _data = unpickle(fpath)
-    labels += _label
-    datas += _data
+    print('load', fname)
+    if fname == 'text_batch': 
+
+    else:
+        labels.append(_label)
+        datas.append(_data)
 print('len label', len(labels))
+print(len(labels[0]))
 print('len data', len(datas))
+print(len(datas[0]))
 
 ### input ###
 sess = tf.InteractiveSession()
