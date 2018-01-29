@@ -16,10 +16,13 @@ batch_size = 50
 learning_rate = 1e-5
 num_labels = 10
 validation = 0.1
+beta = 5e-4
 print('config')
 print('num epoch: %d' %(num_epoch))
 print('batch size: %d' %(batch_size))
 print('learning_rate: %g' %(learning_rate))
+print('validation split: %g' %(validation))
+print('regularization rate: %g' %(beta))
 
 
 ### data loading ###
@@ -178,6 +181,15 @@ y = tf.matmul(h_fc2, w_fc3) + b_fc3
 
 ### train & evaluate ###
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
+regularizer = tf.nn.l2_loss(W1)
+regularizer += tf.nn.l2_loss(W2)
+regularizer += tf.nn.l2_loss(W3)
+regularizer += tf.nn.l2_loss(W4)
+regularizer += tf.nn.l2_loss(W5)
+regularizer += tf.nn.l2_loss(w_fc1)
+regularizer += tf.nn.l2_loss(w_fc2)
+regularizer += tf.nn.l2_loss(w_fc3)
+loss = loss + beta * regularizer
 #loss = -tf.reduce_sum(y_ * tf.log(y))
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 #train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
