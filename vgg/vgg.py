@@ -1,3 +1,4 @@
+# needed: validation, regularization, learning rate decrease
 '''
 from tensorflow.examples.tutorials.mnist import input_data
 mnist=input_data.read_data_sets('./sample/MNIST_data', one_hot=True)
@@ -14,6 +15,7 @@ num_epoch = 20
 batch_size = 50
 learning_rate = 1e-5
 num_labels = 10
+validation = 0.1
 print('config')
 print('num epoch: %d' %(num_epoch))
 print('batch size: %d' %(batch_size))
@@ -36,31 +38,31 @@ def one_hot(label):
 path = '../data/cifar-10-batches-py/'
 
 train_labels = []
-train_datas = []
+train_data = []
 test_labels = []
-test_datas = []
+test_data = []
 for fname in os.listdir(path):
     fpath = os.path.join(path, fname)
     _label, _data = unpickle(fpath)
     print('load', fname)
     if fname == 'test_batch': 
         test_labels = _label
-        test_datas = _data
+        test_data = _data
     else:
         if train_labels==[]:
             train_labels = _label
-            train_datas = _data
+            train_data = _data
         else:
             train_labels = train_labels + _label
-            train_datas = np.concatenate((train_datas, _data))
-#print(train_datas[0][:30])
+            train_data = np.concatenate((train_data, _data))
+#print(train_data[0][:30])
 
 ### RGB mean value ###
 mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
 mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [mean_B for i in range(32*32)]
 '''
 sum_R, sum_G, sum_B, num_data = 0, 0, 0, 0
-for data in train_datas:
+for data in train_data:
     sum_R += sum(data[:32*32])/(32*32)
     sum_G += sum(data[32*32:2*32*32])/(32*32)
     sum_B += sum(data[2*32*32:])/(32*32)
@@ -70,16 +72,23 @@ mean_G = sum_G  /num_data
 mean_B = sum_B / num_data
 print(mean_R, mean_G, mean_B)
 '''
-tmp = list(zip(train_datas, train_labels))
+tmp = list(zip(train_data, train_labels))
 random.shuffle(tmp)
-train_datas, train_labels = zip(*tmp)
-train_datas = list(train_datas)
-train_labels = list(train_labels)
+train_data, train_labels = zip(*tmp)
 
-one_hot(train_labels)
-one_hot(test_labels)
-print('train data length: %d' %(len(train_labels)))
-print('test data length: %d' %(len(test_labels)))
+data_train = list(train_data)[:int(-validation * len(train_data))]
+labels_train = list(train_labels)[:int(-validation * len(train_labels))]
+data_val = list(train_data)[-int(validation * len(train_data)):]
+labels_val = list(train_labels)[-int(validation * len(train_labels)):]
+data_test = test_data
+labels_test = test_labels
+
+one_hot(labels_train)
+one_hot(labels_val)
+one_hot(labels_test)
+print('train data length: %d' %(len(labels_train)))
+print('validation data length: %d' %(len(labels_val)))
+print('test data length: %d' %(len(labels_test)))
 
 ### input ###
 sess = tf.InteractiveSession()
@@ -176,30 +185,49 @@ correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
 accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 sess.run(tf.global_variables_initializer())
 
+### training ###
+pre_val = 0
 for epoch in range(num_epoch):
     print("epoch %d" % (epoch+1))
-    for i in range(len(train_datas)//batch_size):
-        input_data = train_datas[batch_size * i : batch_size * (i+1)]
-        input_label = train_labels[batch_size * i : batch_size * (i+1)]
+    for i in range(len(data_train)//batch_size):
+        input_data = data_train[batch_size * i : batch_size * (i+1)]
+        input_label = labels_train[batch_size * i : batch_size * (i+1)]
         if (i+1)%100==0:
             train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
             print("step %d, training accuracy %g, loss %g"%(i+1, train_accur, train_loss))
         train_step.run(feed_dict={X:input_data,Y:input_label})
 
+    ### validation data accuracy ###
     sum_accur, num_data = 0, 0
-
-    for i in range(len(test_datas)//batch_size):
-        input_data = test_datas[batch_size * i : batch_size * (i+1)]
-        input_label = test_labels[batch_size * i : batch_size * (i+1)]
-        test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+    for i in range(len(data_val)//batch_size):
+        input_data = data_val[batch_size * i : batch_size * (i+1)]
+        input_label = labels_val[batch_size * i : batch_size * (i+1)]
+        val_loss, val_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
         if (i+1)%100==0:
-            print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
-        sum_accur += test_accur
+            print("step %d, test accuracy %g, loss %g"%(i+1, val_accur, val_loss))
+        sum_accur += val_accur
         num_data += 1
+    curr_val = sum_accur / num_data
+    print("validation accuracy %g"%(curr_val))
+    if (curr_val < pre_val):
+        learning_rate /= 10
+        print('change learning rate %g:' %(learning_rate))
+    pre_val = curr_val
 
-    print("final test accuracy %g"%(sum_accur / num_data))
+### test data accuracy ###
+sum_accur, num_data = 0, 0
+for i in range(len(data_test)//batch_size):
+    input_data = data_test[batch_size * i : batch_size * (i+1)]
+    input_label = labels_test[batch_size * i : batch_size * (i+1)]
+    test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+    if (i+1)%100==0:
+        print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
+    sum_accur += test_accur
+    num_data += 1
+
+print("final test accuracy %g"%(sum_accur / num_data))
 
 '''
 print("test accuracy %g" %accur.eval(feed_dict={
-    X:test_datas,Y:test_labels}))
+    X:data_test,Y:labels_test}))
 '''
