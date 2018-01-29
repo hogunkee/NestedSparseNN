@@ -181,14 +181,19 @@ y = tf.matmul(h_fc2, w_fc3) + b_fc3
 
 ### train & evaluate ###
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
-regularizer = tf.nn.l2_loss(W1)
-regularizer += tf.nn.l2_loss(W2)
-regularizer += tf.nn.l2_loss(W3)
-regularizer += tf.nn.l2_loss(W4)
-regularizer += tf.nn.l2_loss(W5)
-regularizer += tf.nn.l2_loss(w_fc1)
+regularizer = tf.nn.l2_loss(w_fc1)
 regularizer += tf.nn.l2_loss(w_fc2)
 regularizer += tf.nn.l2_loss(w_fc3)
+for w in W1:
+    regularizer += tf.nn.l2_loss(w)
+for w in W2:
+    regularizer += tf.nn.l2_loss(w)
+for w in W3:
+    regularizer += tf.nn.l2_loss(w)
+for w in W4:
+    regularizer += tf.nn.l2_loss(w)
+for w in W5:
+    regularizer += tf.nn.l2_loss(w)
 loss = loss + beta * regularizer
 #loss = -tf.reduce_sum(y_ * tf.log(y))
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
