@@ -10,10 +10,15 @@ import numpy as np
 import tensorflow as tf
 
 ### config ###
-num_epoch = 5
+num_epoch = 1
 batch_size = 50
 learning_rate = 1e-5
 num_labels = 10
+print('config')
+print('num epoch: %d' %(num_epoch))
+print('batch size: %d' %(batch_size))
+print('learning_rate: %g' %(learning_rate))
+
 
 ### data loading ###
 def unpickle(file):
@@ -48,7 +53,22 @@ for fname in os.listdir(path):
         else:
             train_labels = train_labels + _label
             train_datas = np.concatenate((train_datas, _data))
-print(train_labels[:5])
+#print(train_datas[0][:30])
+
+### RGB mean value ###
+mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
+'''
+sum_R, sum_G, sum_B, num_data = 0, 0, 0, 0
+for data in train_datas:
+    sum_R += sum(data[:32*32])/(32*32)
+    sum_G += sum(data[32*32:2*32*32])/(32*32)
+    sum_B += sum(data[2*32*32:])/(32*32)
+    num_data +=1
+mean_R = sum_R / num_data
+mean_G = sum_G  /num_data
+mean_B = sum_B / num_data
+print(mean_R, mean_G, mean_B)
+'''
 tmp = list(zip(train_datas, train_labels))
 random.shuffle(tmp)
 train_datas, train_labels = zip(*tmp)
@@ -156,11 +176,24 @@ for epoch in range(num_epoch):
     for i in range(len(train_datas)//batch_size):
         input_data = train_datas[batch_size * i : batch_size * (i+1)]
         input_label = train_labels[batch_size * i : batch_size * (i+1)]
-        if i%100==0:
+        if (i+1)%100==0:
             train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-            print("step %d, training accuracy %g, loss %g"%(i, train_accur, train_loss))
+            print("step %d, training accuracy %g, loss %g"%(i+1, train_accur, train_loss))
         train_step.run(feed_dict={X:input_data,Y:input_label})
 
+sum_accur, num_data = 0, 0
+for i in range(len(test_datas)//batch_size):
+    input_data = test_datas[batch_size * i : batch_size * (i+1)]
+    input_label = test_labels[batch_size * i : batch_size * (i+1)]
+    test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+    if (i+1)%100==0:
+        print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
+    sum_accur += test_accur
+    num_data += 1
+
+print("final test accuracy %g"%(sum_accur / num_data))
+
+'''
 print("test accuracy %g" %accur.eval(feed_dict={
     X:test_datas,Y:test_labels}))
-
+'''
