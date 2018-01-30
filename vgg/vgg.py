@@ -14,7 +14,7 @@ SAVENAME = args.savename
 
 ### config ###
 num_epoch = 300
-batch_size = 100
+batch_size = 50
 learning_rate = 1e-3
 num_labels = 10
 validation = 0.1
