@@ -1,8 +1,5 @@
 # needed: validation, regularization, learning rate decrease
-'''
-from tensorflow.examples.tutorials.mnist import input_data
-mnist=input_data.read_data_sets('./sample/MNIST_data', one_hot=True)
-'''
+import argparse
 import random
 import pickle
 import os
@@ -10,19 +7,33 @@ import os.path
 import numpy as np
 import tensorflow as tf
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-savename', required=True, help='save result name')
+args = parser.parse_args()
+print(args)
+SAVENAME = args.savename
+
 ### config ###
-num_epoch = 500
-batch_size = 50
-learning_rate = 1e-2
+num_epoch = 300
+batch_size = 100
+learning_rate = 1e-3
 num_labels = 10
 validation = 0.1
 beta = 5e-4
+pfile = open('result/' + SAVENAME, 'a+')
+pfile.write('num epoch: '+str(num_epoch)+'\n')
+pfile.write('batch size: '+str(batch_size)+'\n')
+pfile.write('learning rate: '+str(learning_rate)+'\n')
+pfile.write('validation split: '+str(validation)+'\n')
+pfile.write('regularization rate: '+str(beta)+'\n')
 print('config')
 print('num epoch: %d' %(num_epoch))
 print('batch size: %d' %(batch_size))
 print('learning_rate: %g' %(learning_rate))
 print('validation split: %g' %(validation))
 print('regularization rate: %g' %(beta))
+pfile.close()
+pfile = open('result/' + SAVENAME, 'a+')
 
 
 ### data loading ###
@@ -173,8 +184,12 @@ h4 = conv_maxpool(h3, W4, B4)
 h5 = conv_maxpool(h4, W5, B5)
 h5_flat = tf.reshape(h5, [-1, 512])
 h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
+h_dropout1 = tf.nn.dropout(h_fc1, 0.5)
 h_fc2 = tf.nn.relu(tf.matmul(h_fc1, w_fc2) + b_fc2)
-y = tf.matmul(h_fc2, w_fc3) + b_fc3
+h_dropout2 = tf.nn.dropout(h_fc2, 0.5)
+y = tf.matmul(h_dropout2, w_fc3) + b_fc3
+#y = tf.matmul(h_fc2, w_fc3) + b_fc3
+
 #y = tf.nn.relu(tf.matmul(h_fc2, w_fc3) + b_fc3)
 #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, w_fc3) + b_fc3)
 #y = tf.nn.softmax(h_fc3)
@@ -195,26 +210,27 @@ for w in W4:
 for w in W5:
     regularizer += tf.nn.l2_loss(w)
 loss = loss + beta * regularizer
-#loss = -tf.reduce_sum(y_ * tf.log(y))
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-#train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
 correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
 accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 sess.run(tf.global_variables_initializer())
 
 ### training ###
 pre_val = 0
+check_val = 0
 for epoch in range(num_epoch):
     print("epoch %d" % (epoch+1))
+    sum_accur, num_data = 0, 0
     for i in range(len(data_train)//batch_size):
         input_data = data_train[batch_size * i : batch_size * (i+1)]
         input_label = labels_train[batch_size * i : batch_size * (i+1)]
+        train_loss, train_accur, regul_loss = sess.run([loss, accur, regularizer], feed_dict={X:input_data, Y:input_label})
         if (i+1)%100==0:
-            train_loss, train_accur, regul_loss = sess.run([loss, accur, regularizer], feed_dict={X:input_data, Y:input_label})
-            #train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
             print("step %d, training accuracy %g, loss %g, regul %g"%(i+1, train_accur, train_loss, beta * regul_loss))
-            #print("step %d, training accuracy %g, loss %g"%(i+1, train_accur, train_loss))
+        sum_accur += train_accur
+        num_data += 1
         train_step.run(feed_dict={X:input_data,Y:input_label})
+    print("training accuracy %g"%(sum_accur / num_data))
 
     ### validation data accuracy ###
     sum_accur, num_data = 0, 0
@@ -222,17 +238,18 @@ for epoch in range(num_epoch):
         input_data = data_val[batch_size * i : batch_size * (i+1)]
         input_label = labels_val[batch_size * i : batch_size * (i+1)]
         val_loss, val_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-        '''
-        if (i+1)%100==0:
-            print("step %d, test accuracy %g, loss %g"%(i+1, val_accur, val_loss))
-        '''
         sum_accur += val_accur
         num_data += 1
     curr_val = sum_accur / num_data
     print("validation accuracy %g"%(curr_val))
+
+    ### if validation accur decreased, decrease learning rate ###
     if (curr_val < pre_val):
-        learning_rate /= 10
-        print('change learning rate %g:' %(learning_rate))
+        check_val += 1
+        if check_val == 2:
+            learning_rate /= 10
+            print('change learning rate %g:' %(learning_rate))
+            check_val = 0
     pre_val = curr_val
 
 
@@ -243,16 +260,15 @@ for epoch in range(num_epoch):
             input_data = data_test[batch_size * i : batch_size * (i+1)]
             input_label = labels_test[batch_size * i : batch_size * (i+1)]
             test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-            '''
-            if (i+1)%100==0:
-                print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
-            '''
             sum_accur += test_accur
             num_data += 1
 
         print("test accuracy %g"%(sum_accur / num_data))
+        pfile.write(str(epoch+1)+'epoch\n')
+        pfile.write('validation accuracy: '+str(curr_val)+'\n')
+        pfile.write('test accuracy: '+str(sum_accur / num_data)+'\n')
+        pfile.close()
+        pfile = open('result/' + SAVENAME, 'a+')
 
-'''
-print("test accuracy %g" %accur.eval(feed_dict={
-    X:data_test,Y:labels_test}))
-'''
+pfile.close()
+
