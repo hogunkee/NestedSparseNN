@@ -11,9 +11,9 @@ import numpy as np
 import tensorflow as tf
 
 ### config ###
-num_epoch = 20
+num_epoch = 500
 batch_size = 50
-learning_rate = 1e-5
+learning_rate = 1e-2
 num_labels = 10
 validation = 0.1
 beta = 5e-4
@@ -210,8 +210,10 @@ for epoch in range(num_epoch):
         input_data = data_train[batch_size * i : batch_size * (i+1)]
         input_label = labels_train[batch_size * i : batch_size * (i+1)]
         if (i+1)%100==0:
-            train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-            print("step %d, training accuracy %g, loss %g"%(i+1, train_accur, train_loss))
+            train_loss, train_accur, regul_loss = sess.run([loss, accur, regularizer], feed_dict={X:input_data, Y:input_label})
+            #train_loss, train_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+            print("step %d, training accuracy %g, loss %g, regul %g"%(i+1, train_accur, train_loss, beta * regul_loss))
+            #print("step %d, training accuracy %g, loss %g"%(i+1, train_accur, train_loss))
         train_step.run(feed_dict={X:input_data,Y:input_label})
 
     ### validation data accuracy ###
@@ -220,8 +222,10 @@ for epoch in range(num_epoch):
         input_data = data_val[batch_size * i : batch_size * (i+1)]
         input_label = labels_val[batch_size * i : batch_size * (i+1)]
         val_loss, val_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+        '''
         if (i+1)%100==0:
             print("step %d, test accuracy %g, loss %g"%(i+1, val_accur, val_loss))
+        '''
         sum_accur += val_accur
         num_data += 1
     curr_val = sum_accur / num_data
@@ -231,18 +235,22 @@ for epoch in range(num_epoch):
         print('change learning rate %g:' %(learning_rate))
     pre_val = curr_val
 
-### test data accuracy ###
-sum_accur, num_data = 0, 0
-for i in range(len(data_test)//batch_size):
-    input_data = data_test[batch_size * i : batch_size * (i+1)]
-    input_label = labels_test[batch_size * i : batch_size * (i+1)]
-    test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
-    if (i+1)%100==0:
-        print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
-    sum_accur += test_accur
-    num_data += 1
 
-print("final test accuracy %g"%(sum_accur / num_data))
+    ### test data accuracy ###
+    if (epoch+1)%5==0:
+        sum_accur, num_data = 0, 0
+        for i in range(len(data_test)//batch_size):
+            input_data = data_test[batch_size * i : batch_size * (i+1)]
+            input_label = labels_test[batch_size * i : batch_size * (i+1)]
+            test_loss, test_accur = sess.run([loss, accur], feed_dict={X:input_data, Y:input_label})
+            '''
+            if (i+1)%100==0:
+                print("step %d, test accuracy %g, loss %g"%(i+1, test_accur, test_loss))
+            '''
+            sum_accur += test_accur
+            num_data += 1
+
+        print("test accuracy %g"%(sum_accur / num_data))
 
 '''
 print("test accuracy %g" %accur.eval(feed_dict={
