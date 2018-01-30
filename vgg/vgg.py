@@ -10,7 +10,6 @@ import tensorflow as tf
 parser = argparse.ArgumentParser()
 parser.add_argument('-savename', required=True, help='save result name')
 args = parser.parse_args()
-print(args)
 SAVENAME = args.savename
 
 ### config ###
@@ -260,7 +259,7 @@ for epoch in range(num_epoch):
             num_data += 1
 
         print("test accuracy %g"%(sum_accur / num_data))
-        pfile.write(str(epoch+1)+'epoch\n')
+        pfile.write(str(epoch+1)+'-th epoch\n')
         pfile.write('validation accuracy: '+str(curr_val)+'\n')
         pfile.write('test accuracy: '+str(sum_accur / num_data)+'\n')
         pfile.close()
