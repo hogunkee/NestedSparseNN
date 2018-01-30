@@ -217,7 +217,6 @@ sess.run(tf.global_variables_initializer())
 
 ### training ###
 pre_val = 0
-check_val = 0
 for epoch in range(num_epoch):
     print("epoch %d" % (epoch+1))
     sum_accur, num_data = 0, 0
@@ -245,11 +244,8 @@ for epoch in range(num_epoch):
 
     ### if validation accur decreased, decrease learning rate ###
     if (curr_val < pre_val):
-        check_val += 1
-        if check_val == 2:
-            learning_rate /= 10
-            print('change learning rate %g:' %(learning_rate))
-            check_val = 0
+        learning_rate /= 10
+        print('change learning rate %g:' %(learning_rate))
     pre_val = curr_val
 
 
