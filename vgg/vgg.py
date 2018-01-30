@@ -15,11 +15,11 @@ SAVENAME = args.savename
 ### config ###
 num_epoch = 300
 batch_size = 50
-learning_rate = 1e-3
+learning_rate = 5e-4
 num_labels = 10
 validation = 0.1
 beta = 5e-4
-pfile = open('result/' + SAVENAME, 'a+')
+pfile = open('result/' + SAVENAME, 'w+')
 pfile.write('num epoch: '+str(num_epoch)+'\n')
 pfile.write('batch size: '+str(batch_size)+'\n')
 pfile.write('learning rate: '+str(learning_rate)+'\n')
