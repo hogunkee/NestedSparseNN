@@ -110,11 +110,11 @@ Y = tf.placeholder(tf.float32, shape=[None, 10])
 
 ### function definition ###
 def weight_variable(shape):
-    initial=tf.truncated_normal(shape,stddev=0.1)
+    initial=tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial)
 
 def bias_variable(shape):
-    initial=tf.constant(0.1,shape=shape)
+    initial=tf.constant(0.0, shape=shape)
     return tf.Variable(initial)
 
 def make_filter_2(channel_in, channel_out):
@@ -129,14 +129,14 @@ def make_filter_3(channel_in, channel_out):
     return tf.Variable(initial_1), tf.Variable(initial_2), tf.Variable(initial_3)
 
 def make_bias_2(channel):
-    initial_1 = tf.constant(0.1, shape=[channel])
-    initial_2 = tf.constant(0.1, shape=[channel])
+    initial_1 = tf.constant(0.0, shape=[channel])
+    initial_2 = tf.constant(0.0, shape=[channel])
     return tf.Variable(initial_1), tf.Variable(initial_2)
 
 def make_bias_3(channel):
-    initial_1 = tf.constant(0.1, shape=[channel])
-    initial_2 = tf.constant(0.1, shape=[channel])
-    initial_3 = tf.constant(0.1, shape=[channel])
+    initial_1 = tf.constant(0.0, shape=[channel])
+    initial_2 = tf.constant(0.0, shape=[channel])
+    initial_3 = tf.constant(0.0, shape=[channel])
     return tf.Variable(initial_1), tf.Variable(initial_2), tf.Variable(initial_3)
 
 def conv(x,W):
@@ -216,6 +216,8 @@ sess.run(tf.global_variables_initializer())
 
 ### training ###
 pre_val = 0
+check = 0
+count = 0
 for epoch in range(num_epoch):
     print("epoch %d" % (epoch+1))
     sum_accur, num_data = 0, 0
@@ -243,8 +245,14 @@ for epoch in range(num_epoch):
 
     ### if validation accur decreased, decrease learning rate ###
     if (curr_val < pre_val):
-        learning_rate /= 10
-        print('change learning rate %g:' %(learning_rate))
+        check = 1
+    if (check==1):
+        count += 1
+        if (count==20):
+            learning_rate /= 10
+            print('change learning rate %g:' %(learning_rate))
+            check = 0
+            count = 0
     pre_val = curr_val
 
 
