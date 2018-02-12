@@ -2,6 +2,7 @@ import pickle
 import random
 import os
 import os.path
+import numpy as np
 
 def unpickle(file):
     with open(file,'rb') as fo:
