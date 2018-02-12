@@ -23,7 +23,7 @@ class Dataset():
         self.path = path
         self.num_labels = num_classes
 
-    def __call__(self):
+    def __call__(self, validation):
         train_labels = []
         train_data = []
         test_labels = []
@@ -42,7 +42,6 @@ class Dataset():
                 else:
                     train_labels = train_labels + _label
                     train_data = np.concatenate((train_data, _data))
-
         tmp = list(zip(train_data, train_labels))
         random.shuffle(tmp)
         train_data, train_labels = zip(*tmp)
