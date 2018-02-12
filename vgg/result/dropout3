@@ -1,0 +1,80 @@
+num epoch: 300
+batch size: 50
+learning rate: 0.0005
+validation split: 0.1
+regularization rate: 0.0005
+5-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+10-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+15-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+20-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+25-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+30-th epoch
+validation accuracy: 0.09459999937564134
+test accuracy: 0.09999999957159161
+35-th epoch
+validation accuracy: 0.0947999993339181
+test accuracy: 0.09999999957159161
+40-th epoch
+validation accuracy: 0.17799999974668027
+test accuracy: 0.18479999974370004
+45-th epoch
+validation accuracy: 0.5025999996066094
+test accuracy: 0.4968000003695488
+50-th epoch
+validation accuracy: 0.5558000013232232
+test accuracy: 0.5372000016272068
+55-th epoch
+validation accuracy: 0.5538000017404556
+test accuracy: 0.5608000013232232
+60-th epoch
+validation accuracy: 0.5748000019788742
+test accuracy: 0.5650000016391278
+65-th epoch
+validation accuracy: 0.5794000065326691
+test accuracy: 0.5728000022470952
+70-th epoch
+validation accuracy: 0.5838000002503395
+test accuracy: 0.5814000022411346
+75-th epoch
+validation accuracy: 0.5778000006079673
+test accuracy: 0.5807000017166137
+80-th epoch
+validation accuracy: 0.5790000003576279
+test accuracy: 0.5792000015079976
+85-th epoch
+validation accuracy: 0.5852000018954278
+test accuracy: 0.5766000005602837
+90-th epoch
+validation accuracy: 0.5888000038266182
+test accuracy: 0.583100002259016
+95-th epoch
+validation accuracy: 0.5980000039935112
+test accuracy: 0.5931000036001205
+100-th epoch
+validation accuracy: 0.5994000038504601
+test accuracy: 0.5946000042557716
+105-th epoch
+validation accuracy: 0.5760000041127205
+test accuracy: 0.5774000005424023
+110-th epoch
+validation accuracy: 0.5928000020980835
+test accuracy: 0.5994000026583671
+115-th epoch
+validation accuracy: 0.5944000047445297
+test accuracy: 0.5994000062346458
+120-th epoch
+validation accuracy: 0.6016000071167946
+test accuracy: 0.5989000035822392
+125-th epoch
+validation accuracy: 0.5908000054955482
+test accuracy: 0.5923000027239322

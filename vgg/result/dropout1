@@ -1,0 +1,13 @@
+num epoch: 300
+batch size: 100
+learning rate: 0.001
+validation split: 0.1
+regularization rate: 0.0005
+5-th epoch
+validation accuracy: 0.09519999969750642
+test accuracy: 0.10000000013038517
+num epoch: 300
+batch size: 25
+learning rate: 0.001
+validation split: 0.1
+regularization rate: 0.0005
