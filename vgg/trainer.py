@@ -24,7 +24,7 @@ def run_epoch(session, model, data, printOn = False):
         sum_regul_loss += regul_loss
         sum_accur += accur
         
-        if printOn and model.is_training and (iter+1)//model.print_step==0:
+        if printOn and model.is_training and (iter+1)%model.print_step==0:
             print("%d/%d steps. loss: %.3f, regul loss: %.3f, accur: %.3f" %
                     (iter+1, num_steps, loss, regul_loss, accur))
     return (sum_accur/num_steps)
