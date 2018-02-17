@@ -13,7 +13,7 @@ def make_Wb_list(dim1, dim2, tag, num_layer):
     W_list = []
     B_list = []
     for num in range(num_layer):
-        w = make_variable('Weight' + tag + '-' + str(num), [dim1, dim2])
+        w = make_variable('Weight' + tag + '-' + str(num), [3, 3, dim1, dim2])
         b = make_variable('bias' + tag + '-' + str(num), [dim2])
         W_list.append(w)
         B_list.append(b)
@@ -37,17 +37,24 @@ def conv_maxpool(x, filter_list, bias_list):
 
 ### VGGNet model ###
 class VGG(object):
-    def __init__(self, config):
+    def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
         self.keep_prob = 1 - config.dropout
         self.learning_rate = config.learning_rate
         self.beta = config.beta
+        self.is_training = is_training
+        self.image_size = config.image_size 
 
-    def __call__(self, is_training = False):
+        self.batch_size = config.batch_size
+        self.num_epoch = config.num_epoch
+        self.print_step = config.print_step
+
+
+    #def __call__(self, is_training = False):
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
-        if is_training = False:
+        if is_training == False:
             self.keep_prob = 1.0
 
         with tf.variable_scope('VGG'):
@@ -99,7 +106,7 @@ class VGG(object):
         with tf.variable_scope('VGG'):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
-            train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+            train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
         self.train_step = train_step
 
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))

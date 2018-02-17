@@ -60,5 +60,6 @@ class Dataset():
         print('validation data length: %d' %(len(labels_val)))
         print('test data length: %d' %(len(labels_test)))
         
-        return [data_train, data_val, data_test], [labels_train, labels_val, labels_test]
+        #return [data_train, data_val, data_test], [labels_train, labels_val, labels_test]
+        return [data_train, labels_train], [data_val, labels_val], [data_test, labels_test]
 
