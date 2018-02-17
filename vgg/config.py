@@ -15,6 +15,7 @@ parser.add_argument('--beta', default = 5e-4, help = 'regularization rate')
 parser.add_argument('--dropout', default = 0.5, help = 'probability of drop out on fc layers')
 
 parser.add_argument('--outf', default = None, help = 'directory to save result')
+parser.add_argument('--savename', required = True, help = 'save result')
 parser.add_argument('--print_step', default = 10, help = 'print out training steps')
 
 def get_config():
