@@ -3,7 +3,8 @@ import argparse
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--dataset', default = 'cifar10', help = 'dataset')
-parser.add_argument('--dataroot', required = True, heko = 'path to dataset')
+parser.add_argument('--image_size', default = '32', help = 'input image size (size: 32 for cifar10 dataset)')
+parser.add_argument('--datapath', required = True, heko = 'path to dataset')
 
 parser.add_argument('--batch_size', default  = 50, help = 'batch size')
 parser.add_argument('--num_epoch', default  = 300, help = 'number of epoch')
