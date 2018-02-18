@@ -70,10 +70,10 @@ class VGG(object):
 
         x = tf.reshape(X, [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+        x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
 
         ## convolution & maxpooling layer ##
-        h1 = conv_maxpool(x_flip, W1, B1)
-        #h1 = conv_maxpool(x, W1, B1)
+        h1 = conv_maxpool(x_padcrop, W1, B1)
         h2 = conv_maxpool(h1, W2, B2)
         h3 = conv_maxpool(h2, W3, B3)
         h4 = conv_maxpool(h3, W4, B4)
