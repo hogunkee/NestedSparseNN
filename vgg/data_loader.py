@@ -16,8 +16,6 @@ def one_hot(label, num_labels):
         tmp[label[i]] = 1
         label[i] = tmp
 
-#path = '../data/cifar-10-batches-py/'
-
 class Dataset():
     def __init__(self, path, num_classes):
         self.path = path

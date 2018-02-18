@@ -1,0 +1,24 @@
+dataset: cifar10
+image size: 32
+num epoch: 300
+batch size: 50
+learning rate: 1e-05
+validation split: 0.1
+regularization rate: 0.0005
+drop out: 0.5
+
+Epoch: 1/300
+train accur: 0.218
+val accur: 0.281
+
+Epoch: 2/300
+train accur: 0.339
+val accur: 0.410
+
+Epoch: 3/300
+train accur: 0.397
+val accur: 0.443
+
+Epoch: 4/300
+train accur: 0.436
+val accur: 0.474
