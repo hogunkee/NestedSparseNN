@@ -13,6 +13,7 @@ def run_epoch(session, model, data, printOn = False):
         fetches['train_step'] = model.train_step
     for iter in range(num_steps):
         vals = session.run(fetches, feed_dict = {
+            model.learning_rate: model.lr, 
             model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
             model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
             })
@@ -29,22 +30,3 @@ def run_epoch(session, model, data, printOn = False):
                     (iter+1, num_steps, loss, regul_loss, accur))
     return (sum_accur/num_steps)
     #return (sum_loss/num_steps), (sum_regul_loss/num_steps), (sum_accur/num_steps)
-        
-
-'''
-class Trainer(object):
-    def __init__(self, config):
-        self.num_epoch = config.num_epoch
-        self.batch_size = config.batch_size
-
-        DataLoader = Dataset(config.datapath, config.num_classes)
-        self.data, self.labels = DataLoader(self.validation)
-
-        self.trainModel = VGG(config, is_training = True)
-        self.testModel = VGG(config, is_training = False)
-
-    def run_epoch(session, model, data, labels, eval_op=None, printOn = False):
-        costs = 0.0
-        num_steps = len(data) // self.batch_size
-
-'''

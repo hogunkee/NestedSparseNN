@@ -40,7 +40,8 @@ class VGG(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
         self.keep_prob = 1 - config.dropout
-        self.learning_rate = config.learning_rate
+        self.lr = config.learning_rate
+        #self.learning_rate = config.learning_rate
         self.beta = config.beta
         self.is_training = is_training
         self.image_size = config.image_size 
@@ -59,6 +60,7 @@ class VGG(object):
         with tf.variable_scope('VGG'):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
+            self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
             W1, B1 = make_Wb_list(3, 64, '1', 2)
             W2, B2 = make_Wb_list(64, 128, '2', 2)
             W3, B3 = make_Wb_list(128, 256, '3', 3)
