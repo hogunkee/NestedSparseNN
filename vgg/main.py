@@ -11,6 +11,7 @@ def main(config):
     DataLoader = Dataset(config.datapath, config.num_classes)
     Input_train, Input_val, Input_test = DataLoader(config.validation)
 
+	### writing results ###
     savepath = os.path.join(config.outf, config.savename)
     pfile = open(savepath, 'w+')
     pfile.write('dataset: '+str(config.dataset)+'\n')

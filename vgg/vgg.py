@@ -50,7 +50,6 @@ class VGG(object):
         self.print_step = config.print_step
 
 
-    #def __call__(self, is_training = False):
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
@@ -70,9 +69,11 @@ class VGG(object):
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
 
         x = tf.reshape(X, [-1, 32, 32, 3])
+        x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
 
         ## convolution & maxpooling layer ##
-        h1 = conv_maxpool(x, W1, B1)
+        h1 = conv_maxpool(x_flip, W1, B1)
+        #h1 = conv_maxpool(x, W1, B1)
         h2 = conv_maxpool(h1, W2, B2)
         h3 = conv_maxpool(h2, W3, B3)
         h4 = conv_maxpool(h3, W4, B4)
