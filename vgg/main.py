@@ -51,11 +51,13 @@ def main(config):
                 ### if validation accuracy decreased, decrease learning rate ###
                 if (val_accur < pre_val):
                     count += 1
+                else:
+                    count = 0
                 if (count==2):
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     count = 0
-                pre_val = curr_val
+                pre_val = val_accur 
 
             test_accur = run_epoch(sess, testModel, Input_test)
             print("test accur: %.3f" %test_accur)
