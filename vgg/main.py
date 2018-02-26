@@ -36,6 +36,7 @@ def main(config):
 
             pre_val = 0
             count = 0 
+            num_change = 0
             for i in range(config.num_epoch):
                 train_accur = run_epoch(sess, trainModel, Input_train, printOn = True)
                 val_accur = run_epoch(sess, testModel, Input_val)
@@ -53,9 +54,10 @@ def main(config):
                     count += 1
                 else:
                     count = 0
-                if (count==2):
+                if count == 3 and num_change < 4:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
+                    num_change += 1
                     count = 0
                 pre_val = val_accur 
 

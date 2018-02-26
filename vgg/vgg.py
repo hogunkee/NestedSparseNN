@@ -32,8 +32,13 @@ def conv_maxpool(x, filter_list, bias_list):
         w = filter_list[i]
         b = bias_list[i]
         x = tf.nn.relu(conv(x, w) + b)
+        #x = tf.nn.batch_normalization(x, 0.0, 0.01, offset = None, scale = None,variance_epsilon = 0.001)
     x = maxpool(x)
     return x
+
+### RGB mean value ###
+mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
+mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [mean_B for i in range(32*32)]
 
 ### VGGNet model ###
 class VGG(object):
@@ -54,8 +59,10 @@ class VGG(object):
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
+        '''
         if is_training == False:
             self.keep_prob = 1.0
+        '''
 
         with tf.variable_scope('VGG'):
             if not is_training:
@@ -69,13 +76,15 @@ class VGG(object):
             w_fc1, b_fc1 = make_Wb_tuple(512, 512, 'fc1')
             w_fc2, b_fc2 = make_Wb_tuple(512, 512, 'fc2')
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
+            noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        x = tf.reshape(X, [-1, 32, 32, 3])
+        x = tf.reshape(X - noise, [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
 
         ## convolution & maxpooling layer ##
-        h1 = conv_maxpool(x_padcrop, W1, B1)
+        h1 = conv_maxpool(x_flip, W1, B1)
+        #h1 = conv_maxpool(x_padcrop, W1, B1)
         h2 = conv_maxpool(h1, W2, B2)
         h3 = conv_maxpool(h2, W3, B3)
         h4 = conv_maxpool(h3, W4, B4)
@@ -84,8 +93,10 @@ class VGG(object):
         ## fully connected layer ##
         h5_flat = tf.reshape(h5, [-1, 512])
         h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
+        #h_norm1 = tf.nn.batch_normalization(h_fc1, 0.0, 0.01, offset = None, scale = None,variance_epsilon = 0.001)
         h_dropout1 = tf.nn.dropout(h_fc1, self.keep_prob)
         h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
+        #h_norm2 = tf.nn.batch_normalization(h_fc2, 0.0, 0.01, offset = None, scale = None,variance_epsilon = 0.001)
         h_dropout2 = tf.nn.dropout(h_fc2, self.keep_prob)
         y = tf.matmul(h_dropout2, w_fc3) + b_fc3
 

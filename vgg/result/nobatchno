@@ -1,0 +1,1210 @@
+dataset: cifar10
+image size: 32
+num epoch: 300
+batch size: 50
+initial learning rate: 0.0001
+validation split: 0.1
+regularization rate: 0.0005
+drop out: 0.5
+
+Epoch: 1/300
+train accur: 0.238
+val accur: 0.324
+
+Epoch: 2/300
+train accur: 0.353
+val accur: 0.411
+
+Epoch: 3/300
+train accur: 0.437
+val accur: 0.494
+
+Epoch: 4/300
+train accur: 0.518
+val accur: 0.501
+
+Epoch: 5/300
+train accur: 0.569
+val accur: 0.558
+
+Epoch: 6/300
+train accur: 0.608
+val accur: 0.583
+
+Epoch: 7/300
+train accur: 0.639
+val accur: 0.598
+
+Epoch: 8/300
+train accur: 0.668
+val accur: 0.603
+
+Epoch: 9/300
+train accur: 0.693
+val accur: 0.605
+
+Epoch: 10/300
+train accur: 0.715
+val accur: 0.609
+
+Epoch: 11/300
+train accur: 0.739
+val accur: 0.615
+
+Epoch: 12/300
+train accur: 0.756
+val accur: 0.610
+
+Epoch: 13/300
+train accur: 0.776
+val accur: 0.596
+
+Epoch: 14/300
+train accur: 0.791
+val accur: 0.607
+
+Epoch: 15/300
+train accur: 0.802
+val accur: 0.607
+
+Epoch: 16/300
+train accur: 0.814
+val accur: 0.622
+
+Epoch: 17/300
+train accur: 0.827
+val accur: 0.626
+
+Epoch: 18/300
+train accur: 0.835
+val accur: 0.612
+
+Epoch: 19/300
+train accur: 0.848
+val accur: 0.624
+
+Epoch: 20/300
+train accur: 0.861
+val accur: 0.624
+
+Epoch: 21/300
+train accur: 0.871
+val accur: 0.629
+
+Epoch: 22/300
+train accur: 0.878
+val accur: 0.635
+
+Epoch: 23/300
+train accur: 0.881
+val accur: 0.627
+
+Epoch: 24/300
+train accur: 0.890
+val accur: 0.633
+
+Epoch: 25/300
+train accur: 0.896
+val accur: 0.644
+
+Epoch: 26/300
+train accur: 0.903
+val accur: 0.624
+
+Epoch: 27/300
+train accur: 0.908
+val accur: 0.628
+
+Epoch: 28/300
+train accur: 0.913
+val accur: 0.627
+
+Epoch: 29/300
+train accur: 0.916
+val accur: 0.641
+
+Epoch: 30/300
+train accur: 0.921
+val accur: 0.634
+
+Epoch: 31/300
+train accur: 0.923
+val accur: 0.633
+
+Epoch: 32/300
+train accur: 0.929
+val accur: 0.629
+
+Epoch: 33/300
+train accur: 0.946
+val accur: 0.656
+
+Epoch: 34/300
+train accur: 0.968
+val accur: 0.658
+
+Epoch: 35/300
+train accur: 0.978
+val accur: 0.658
+
+Epoch: 36/300
+train accur: 0.984
+val accur: 0.663
+
+Epoch: 37/300
+train accur: 0.989
+val accur: 0.659
+
+Epoch: 38/300
+train accur: 0.991
+val accur: 0.659
+
+Epoch: 39/300
+train accur: 0.993
+val accur: 0.664
+
+Epoch: 40/300
+train accur: 0.995
+val accur: 0.655
+
+Epoch: 41/300
+train accur: 0.995
+val accur: 0.659
+
+Epoch: 42/300
+train accur: 0.995
+val accur: 0.662
+
+Epoch: 43/300
+train accur: 0.996
+val accur: 0.660
+
+Epoch: 44/300
+train accur: 0.996
+val accur: 0.663
+
+Epoch: 45/300
+train accur: 0.997
+val accur: 0.662
+
+Epoch: 46/300
+train accur: 0.997
+val accur: 0.661
+
+Epoch: 47/300
+train accur: 0.997
+val accur: 0.665
+
+Epoch: 48/300
+train accur: 0.997
+val accur: 0.661
+
+Epoch: 49/300
+train accur: 0.998
+val accur: 0.664
+
+Epoch: 50/300
+train accur: 0.998
+val accur: 0.659
+
+Epoch: 51/300
+train accur: 0.998
+val accur: 0.662
+
+Epoch: 52/300
+train accur: 0.998
+val accur: 0.659
+
+Epoch: 53/300
+train accur: 0.998
+val accur: 0.660
+
+Epoch: 54/300
+train accur: 0.998
+val accur: 0.659
+
+Epoch: 55/300
+train accur: 0.998
+val accur: 0.660
+
+Epoch: 56/300
+train accur: 0.998
+val accur: 0.661
+
+Epoch: 57/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 58/300
+train accur: 0.999
+val accur: 0.662
+
+Epoch: 59/300
+train accur: 0.998
+val accur: 0.663
+
+Epoch: 60/300
+train accur: 0.999
+val accur: 0.661
+
+Epoch: 61/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 62/300
+train accur: 0.998
+val accur: 0.663
+
+Epoch: 63/300
+train accur: 0.999
+val accur: 0.667
+
+Epoch: 64/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 65/300
+train accur: 0.998
+val accur: 0.662
+
+Epoch: 66/300
+train accur: 0.999
+val accur: 0.657
+
+Epoch: 67/300
+train accur: 0.999
+val accur: 0.663
+
+Epoch: 68/300
+train accur: 0.999
+val accur: 0.658
+
+Epoch: 69/300
+train accur: 0.999
+val accur: 0.665
+
+Epoch: 70/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 71/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 72/300
+train accur: 0.999
+val accur: 0.662
+
+Epoch: 73/300
+train accur: 0.999
+val accur: 0.658
+
+Epoch: 74/300
+train accur: 0.999
+val accur: 0.661
+
+Epoch: 75/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 76/300
+train accur: 0.999
+val accur: 0.663
+
+Epoch: 77/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 78/300
+train accur: 0.999
+val accur: 0.661
+
+Epoch: 79/300
+train accur: 0.999
+val accur: 0.672
+
+Epoch: 80/300
+train accur: 0.999
+val accur: 0.667
+
+Epoch: 81/300
+train accur: 0.999
+val accur: 0.662
+
+Epoch: 82/300
+train accur: 0.999
+val accur: 0.665
+
+Epoch: 83/300
+train accur: 0.999
+val accur: 0.657
+
+Epoch: 84/300
+train accur: 0.999
+val accur: 0.667
+
+Epoch: 85/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 86/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 87/300
+train accur: 0.999
+val accur: 0.665
+
+Epoch: 88/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 89/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 90/300
+train accur: 0.999
+val accur: 0.662
+
+Epoch: 91/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 92/300
+train accur: 0.998
+val accur: 0.661
+
+Epoch: 93/300
+train accur: 0.999
+val accur: 0.654
+
+Epoch: 94/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 95/300
+train accur: 0.999
+val accur: 0.667
+
+Epoch: 96/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 97/300
+train accur: 0.999
+val accur: 0.667
+
+Epoch: 98/300
+train accur: 0.999
+val accur: 0.662
+
+Epoch: 99/300
+train accur: 0.999
+val accur: 0.668
+
+Epoch: 100/300
+train accur: 0.999
+val accur: 0.664
+
+Epoch: 101/300
+train accur: 0.999
+val accur: 0.659
+
+Epoch: 102/300
+train accur: 0.999
+val accur: 0.656
+
+Epoch: 103/300
+train accur: 0.999
+val accur: 0.660
+
+Epoch: 104/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 105/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 106/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 107/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 108/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 109/300
+train accur: 1.000
+val accur: 0.670
+
+Epoch: 110/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 111/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 112/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 113/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 114/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 115/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 116/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 117/300
+train accur: 1.000
+val accur: 0.671
+
+Epoch: 118/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 119/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 120/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 121/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 122/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 123/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 124/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 125/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 126/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 127/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 128/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 129/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 130/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 131/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 132/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 133/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 134/300
+train accur: 1.000
+val accur: 0.668
+
+Epoch: 135/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 136/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 137/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 138/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 139/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 140/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 141/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 142/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 143/300
+train accur: 1.000
+val accur: 0.668
+
+Epoch: 144/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 145/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 146/300
+train accur: 1.000
+val accur: 0.668
+
+Epoch: 147/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 148/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 149/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 150/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 151/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 152/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 153/300
+train accur: 1.000
+val accur: 0.669
+
+Epoch: 154/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 155/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 156/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 157/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 158/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 159/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 160/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 161/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 162/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 163/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 164/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 165/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 166/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 167/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 168/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 169/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 170/300
+train accur: 1.000
+val accur: 0.668
+
+Epoch: 171/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 172/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 173/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 174/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 175/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 176/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 177/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 178/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 179/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 180/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 181/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 182/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 183/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 184/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 185/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 186/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 187/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 188/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 189/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 190/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 191/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 192/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 193/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 194/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 195/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 196/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 197/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 198/300
+train accur: 1.000
+val accur: 0.667
+
+Epoch: 199/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 200/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 201/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 202/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 203/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 204/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 205/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 206/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 207/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 208/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 209/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 210/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 211/300
+train accur: 1.000
+val accur: 0.655
+
+Epoch: 212/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 213/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 214/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 215/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 216/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 217/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 218/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 219/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 220/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 221/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 222/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 223/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 224/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 225/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 226/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 227/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 228/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 229/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 230/300
+train accur: 1.000
+val accur: 0.666
+
+Epoch: 231/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 232/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 233/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 234/300
+train accur: 1.000
+val accur: 0.655
+
+Epoch: 235/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 236/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 237/300
+train accur: 1.000
+val accur: 0.668
+
+Epoch: 238/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 239/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 240/300
+train accur: 1.000
+val accur: 0.657
+
+Epoch: 241/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 242/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 243/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 244/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 245/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 246/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 247/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 248/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 249/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 250/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 251/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 252/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 253/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 254/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 255/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 256/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 257/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 258/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 259/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 260/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 261/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 262/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 263/300
+train accur: 1.000
+val accur: 0.654
+
+Epoch: 264/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 265/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 266/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 267/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 268/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 269/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 270/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 271/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 272/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 273/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 274/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 275/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 276/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 277/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 278/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 279/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 280/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 281/300
+train accur: 1.000
+val accur: 0.661
+
+Epoch: 282/300
+train accur: 1.000
+val accur: 0.658
+
+Epoch: 283/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 284/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 285/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 286/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 287/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 288/300
+train accur: 1.000
+val accur: 0.662
+
+Epoch: 289/300
+train accur: 1.000
+val accur: 0.665
+
+Epoch: 290/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 291/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 292/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 293/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 294/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 295/300
+train accur: 1.000
+val accur: 0.663
+
+Epoch: 296/300
+train accur: 1.000
+val accur: 0.660
+
+Epoch: 297/300
+train accur: 1.000
+val accur: 0.656
+
+Epoch: 298/300
+train accur: 1.000
+val accur: 0.659
+
+Epoch: 299/300
+train accur: 1.000
+val accur: 0.664
+
+Epoch: 300/300
+train accur: 1.000
+val accur: 0.661
+
+test accur: 0.660
