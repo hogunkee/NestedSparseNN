@@ -30,7 +30,7 @@ def conv(x,w):
 def maxpool(x):
     return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-def conv_maxpool(x, filter_list, bias_list):
+def conv_maxpool(x, filter_list, bias_list, scope):
     for i in range(len(filter_list)):
         '''
         if not i==0:
@@ -39,24 +39,32 @@ def conv_maxpool(x, filter_list, bias_list):
         w = filter_list[i]
         b = bias_list[i]
         x = tf.nn.relu(conv(x, w) + b)
-        #x = tf.layers.batch_normalization(x)
+        print(tf.shape(x))
+        #x = batch_norm(x, shape(x)
     x = maxpool(x)
     return x
 
-def batch_norm(x, is_training = True, scope = 'VGG'):
-    return tf.contrib.layers.batch_norm(x, is_training=True, center=False, updates_collections=None, scope=scope, reuse=tf.AUTO_REUSE)
-    if is_training:
-        return tf.contrib.layers.batch_norm(x, is_training=True, center=False, updates_collections=None, scope=scope, reuse=tf.AUTO_REUSE)
-    else:
-        return tf.contrib.layers.batch_norm(x, is_training=False, center=False, updates_collections=None, scope=scope, reuse=True)
-        
-    '''
-    return tf.cond(is_training,
-            lambda: tf.contrib.layers.batch_norm(x, is_training=True, center=False, scope=scope),
-            lambda: tf.contrib.layers.batch_norm(x, is_training=False, center=False, scope=scope, reuse=True))
-    '''
-            #lambda: tf.contrib.layers.batch_norm(x, is_training=True, center=False, updates_collections=None, scope=scope),
-            #lambda: tf.contrib.layers.batch_norm(x, is_training=False, center=False, updates_collections=None, scope=scope, reuse=True))
+def batch_norm(x, n_out, scope, is_training = True):
+    with tf.variable_scope(scope):
+        beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
+                name='beta', trainable=True)
+        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]).
+                name='gamma', trainable=True)
+        batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
+        ema = tf.train.ExponentialMovingAverage(decay = 0.5)
+
+        def mean_var_with_update():
+            ema_apply_op = ema.apply([batch_mean, batch_var])
+            with tf.control_dependencies([ema_apply_op]):
+                return batch_mean, batch_var
+
+        if is_training:
+            mean, var = ema.average(batch_mean), ema.average(batch_var)
+        else:
+            mean, var = batch_mean, batch_var
+
+        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-3)
+    return normed
 
 ### RGB mean value ###
 mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
@@ -105,6 +113,7 @@ class VGG(object):
             #x = tf.reshape((X - noise), [-1, 32, 32, 3])
             x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
             x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
+            # 2개씩 pad & crop
 
             ## convolution & maxpooling layer ##
             h1 = conv_maxpool(x, W1, B1)
@@ -118,12 +127,12 @@ class VGG(object):
             ## fully connected layer ##
             h5_flat = tf.reshape(h5, [-1, 512])
             h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
-            h_norm1 = batch_norm(h_fc1, self.is_training)
-            #h_norm1 = tf.layers.batch_normalization(h_fc1, training = self.is_training, reuse = not self.is_training)
+            h_norm1 = h_fc1
+            #h_norm1 = batch_norm(h_fc1, self.is_training)
             h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
             h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
-            h_norm2 = batch_norm(h_fc2, self.is_training)
-            #h_norm2 = tf.layers.batch_normalization(h_fc2, training = self.is_training, reuse = not self.is_training)
+            h_norm2 = h_fc2
+            #h_norm2 = batch_norm(h_fc2, self.is_training)
             h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
             y = tf.matmul(h_dropout2, w_fc3) + b_fc3
 
