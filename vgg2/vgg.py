@@ -30,7 +30,7 @@ def conv(x,w):
 def maxpool(x):
     return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-def conv_maxpool(x, filter_list, bias_list, scope):
+def conv_maxpool(x, filter_list, bias_list, scope, is_training):
     for i in range(len(filter_list)):
         '''
         if not i==0:
@@ -39,8 +39,8 @@ def conv_maxpool(x, filter_list, bias_list, scope):
         w = filter_list[i]
         b = bias_list[i]
         x = tf.nn.relu(conv(x, w) + b)
-        print(tf.shape(x))
-        #x = batch_norm(x, shape(x)
+        #print(x.shape[3])
+        x = batch_norm(x, int(x.shape[3]), scope, is_training)
     x = maxpool(x)
     return x
 
@@ -48,7 +48,7 @@ def batch_norm(x, n_out, scope, is_training = True):
     with tf.variable_scope(scope):
         beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
                 name='beta', trainable=True)
-        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]).
+        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
                 name='gamma', trainable=True)
         batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
         ema = tf.train.ExponentialMovingAverage(decay = 0.5)
@@ -59,9 +59,11 @@ def batch_norm(x, n_out, scope, is_training = True):
                 return batch_mean, batch_var
 
         if is_training:
-            mean, var = ema.average(batch_mean), ema.average(batch_var)
+            mean, var = mean_var_with_update()
         else:
             mean, var = batch_mean, batch_var
+            #mean, var = ema.average(batch_mean), ema.average(batch_var)
+            #print(mean,var)
 
         normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-3)
     return normed
@@ -98,6 +100,7 @@ class VGG(object):
         with tf.variable_scope('VGG'):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
+                #print(tf.get_variable_scope().name)
             self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
             W1, B1 = make_Wb_list(3, 64, '1', 2)
             W2, B2 = make_Wb_list(64, 128, '2', 2)
@@ -109,58 +112,64 @@ class VGG(object):
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-            x = tf.reshape(X, [-1, 32, 32, 3])
-            #x = tf.reshape((X - noise), [-1, 32, 32, 3])
-            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
-            x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
-            # 2개씩 pad & crop
+        x = tf.reshape(X, [-1, 32, 32, 3])
+        #x = tf.reshape((X - noise), [-1, 32, 32, 3])
+        x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+        x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
+        # 2개씩 pad & crop
 
-            ## convolution & maxpooling layer ##
-            h1 = conv_maxpool(x, W1, B1)
-            #h1 = conv_maxpool(x_flip, W1, B1)
-            #h1 = conv_maxpool(x_padcrop, W1, B1)
-            h2 = conv_maxpool(h1, W2, B2)
-            h3 = conv_maxpool(h2, W3, B3)
-            h4 = conv_maxpool(h3, W4, B4)
-            h5 = conv_maxpool(h4, W5, B5)
+        ## convolution & maxpooling layer ##
+        h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
+        #h1 = conv_maxpool(x_flip, W1, B1)
+        #h1 = conv_maxpool(x_padcrop, W1, B1)
+        h2 = conv_maxpool(h1, W2, B2, '2', self.is_training)
+        h3 = conv_maxpool(h2, W3, B3, '3', self.is_training)
+        h4 = conv_maxpool(h3, W4, B4, '4', self.is_training)
+        h5 = conv_maxpool(h4, W5, B5, '5', self.is_training)
 
-            ## fully connected layer ##
-            h5_flat = tf.reshape(h5, [-1, 512])
-            h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
-            h_norm1 = h_fc1
-            #h_norm1 = batch_norm(h_fc1, self.is_training)
-            h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
-            h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
-            h_norm2 = h_fc2
-            #h_norm2 = batch_norm(h_fc2, self.is_training)
-            h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
-            y = tf.matmul(h_dropout2, w_fc3) + b_fc3
+        ## fully connected layer ##
+        h5_flat = tf.reshape(h5, [-1, 512])
+        h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
+        h_norm1 = h_fc1
+        #h_norm1 = batch_norm(h_fc1, self.is_training)
+        h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
+        h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
+        h_norm2 = h_fc2
+        #h_norm2 = batch_norm(h_fc2, self.is_training)
+        h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
+        y = tf.matmul(h_dropout2, w_fc3) + b_fc3
 
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
-            regularizer = tf.nn.l2_loss(w_fc1)
-            regularizer += tf.nn.l2_loss(w_fc2)
-            regularizer += tf.nn.l2_loss(w_fc3)
-            for w in W1:
-                regularizer += tf.nn.l2_loss(w)
-            for w in W2:
-                regularizer += tf.nn.l2_loss(w)
-            for w in W3:
-                regularizer += tf.nn.l2_loss(w)
-            for w in W4:
-                regularizer += tf.nn.l2_loss(w)
-            for w in W5:
-                regularizer += tf.nn.l2_loss(w)
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
+        regularizer = tf.nn.l2_loss(w_fc1)
+        regularizer += tf.nn.l2_loss(w_fc2)
+        regularizer += tf.nn.l2_loss(w_fc3)
+        for w in W1:
+            regularizer += tf.nn.l2_loss(w)
+        for w in W2:
+            regularizer += tf.nn.l2_loss(w)
+        for w in W3:
+            regularizer += tf.nn.l2_loss(w)
+        for w in W4:
+            regularizer += tf.nn.l2_loss(w)
+        for w in W5:
+            regularizer += tf.nn.l2_loss(w)
 
-            self.regularizer = regularizer
-            self.loss = loss = loss + self.beta * self.regularizer
+        self.regularizer = regularizer
+        self.loss = loss = loss + self.beta * self.regularizer
+
+        if not self.is_training:
             with tf.variable_scope('VGG'):
-                if not self.is_training:
-                    tf.get_variable_scope().reuse_variables()
-                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-                with tf.control_dependencies(update_ops):
-                    train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
-            self.train_step = train_step
+                tf.get_variable_scope().reuse_variables()
+        '''
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            with tf.control_dependencies(update_ops):
+        '''
+        optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.99, use_nesterov=True)
+        train_step = optimizer.minimize(loss)
+        #train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(loss)
+        #train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
+        self.train_step = train_step
 
-            correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
-            self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
+        correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
+        self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 
