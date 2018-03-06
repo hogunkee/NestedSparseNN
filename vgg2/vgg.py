@@ -65,7 +65,31 @@ def batch_norm(x, n_out, scope, is_training = True):
             #mean, var = ema.average(batch_mean), ema.average(batch_var)
             #print(mean,var)
 
-        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-3)
+        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
+    return normed
+
+def batch_norm2(x, n_out, scope, is_training = True):
+    with tf.variable_scope(scope):
+        beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
+                name='beta', trainable=True)
+        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
+                name='gamma', trainable=True)
+        batch_mean, batch_var = tf.nn.moments(x, [0,1], name='moments')
+        ema = tf.train.ExponentialMovingAverage(decay = 0.5)
+
+        def mean_var_with_update():
+            ema_apply_op = ema.apply([batch_mean, batch_var])
+            with tf.control_dependencies([ema_apply_op]):
+                return batch_mean, batch_var
+
+        if is_training:
+            mean, var = mean_var_with_update()
+        else:
+            mean, var = batch_mean, batch_var
+            #mean, var = ema.average(batch_mean), ema.average(batch_var)
+            #print(mean,var)
+
+        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
     return normed
 
 ### RGB mean value ###
@@ -115,13 +139,17 @@ class VGG(object):
         x = tf.reshape(X, [-1, 32, 32, 3])
         #x = tf.reshape((X - noise), [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
-        x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
+        paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
+        x_pad = tf.pad(x_flip, paddings, 'CONSTANT')
+        x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [32,32,3]), x_pad, dtype = tf.float32)
+        #x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 2, 2, 36, 36), [32, 32, 3]), x_flip, dtype = tf.float32)
+        #self.sample = x_padcrop[0]
+        
         # 2개씩 pad & crop
 
         ## convolution & maxpooling layer ##
-        h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
-        #h1 = conv_maxpool(x_flip, W1, B1)
-        #h1 = conv_maxpool(x_padcrop, W1, B1)
+        h1 = conv_maxpool(x_padcrop, W1, B1, '1', self.is_training)
+        #h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
         h2 = conv_maxpool(h1, W2, B2, '2', self.is_training)
         h3 = conv_maxpool(h2, W3, B3, '3', self.is_training)
         h4 = conv_maxpool(h3, W4, B4, '4', self.is_training)
@@ -130,12 +158,12 @@ class VGG(object):
         ## fully connected layer ##
         h5_flat = tf.reshape(h5, [-1, 512])
         h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
-        h_norm1 = h_fc1
-        #h_norm1 = batch_norm(h_fc1, self.is_training)
+        #h_norm1 = h_fc1
+        h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
         h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
         h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
-        h_norm2 = h_fc2
-        #h_norm2 = batch_norm(h_fc2, self.is_training)
+        #h_norm2 = h_fc2
+        h_norm2 = batch_norm2(h_fc2, int(h_fc2.shape[1]), 'fc2', self.is_training)
         h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
         y = tf.matmul(h_dropout2, w_fc3) + b_fc3
 

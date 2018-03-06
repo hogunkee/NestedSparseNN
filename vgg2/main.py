@@ -54,7 +54,7 @@ def main(config):
                     count += 1
                 else:
                     count = 0
-                if count == 3 and num_change < 4:
+                if count == 1 and num_change < 4:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     num_change += 1
