@@ -157,18 +157,16 @@ class VGG(object):
         self.regularizer = regularizer
         self.loss = loss = loss + self.beta * self.regularizer
 
-        if not self.is_training:
-            with tf.variable_scope('VGG'):
-                tf.get_variable_scope().reuse_variables()
         '''
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             with tf.control_dependencies(update_ops):
         '''
-        optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.99, use_nesterov=True)
-        train_step = optimizer.minimize(loss)
         #train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(loss)
         #train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
-        self.train_step = train_step
+        with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+            optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
+            train_step = optimizer.minimize(loss)
+            self.train_step = train_step
 
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
         self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
