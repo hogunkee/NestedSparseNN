@@ -21,41 +21,29 @@ def conv(x, w, stride):
     return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME')
 
 def conv_bn_relu(x, dim1, dim2, tag, is_training):
-    if dim1 != dim2:
+    if dim2//dim1==2:
         stride = 2
     else:
         stride = 1
-    w = make_variable('Weight-' + tag, [3, 3, dim1, dim2])
+    with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+        w = make_variable('Weight-' + tag, [3, 3, dim1, dim2])
 
     x_conv = conv(x, w, stride)
     x_bn = batch_norm(x_conv, dim2, is_training)
     x_relu = tf.nn.relu(x_bn)
-    return x_relu
+    return x_relu, tf.nn.l2_loss(w)
 
 def res_block(x, dim1, dim2, scope, tag, is_training):
-    with tf.variable_scope(scope):
+    with tf.variable_scope(scope, reuse = tf.AUTO_REUSE):
         shortcut = x
         if dim1 != dim2:
             w = make_variable('shortcut-' + tag, [3,3,dim1,dim2])
-            shorcut = conv(x, w, 2)
+            shortcut = conv(x, w, 2)
 
-        x_1 = conv_bn_relu(x, dim1, dim2, tag + '-1', is_training)
-        x_2 = conv_bn_relu(x, dim2, dim2, tag + '-2', is_training)
+        x_1, reg1 = conv_bn_relu(x, dim1, dim2, tag + '-1', is_training)
+        x_2, reg2 = conv_bn_relu(x_1, dim2, dim2, tag + '-2', is_training)
 
-        return tf.add(x_2, x)
-
-def maxpool(x):
-    return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
-
-def conv_maxpool(x, filter_list, bias_list, scope, is_training):
-    for i in range(len(filter_list)):
-        w = filter_list[i]
-        b = bias_list[i]
-        x = tf.nn.relu(conv(x, w) + b)
-        #print(x.shape[3])
-        x = batch_norm(x, int(x.shape[3]), scope, is_training)
-    x = maxpool(x)
-    return x
+        return tf.add(x_2, shortcut), tf.add(reg1, reg2)
 
 def batch_norm(x, n_out, is_training = True):
     beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
@@ -78,30 +66,6 @@ def batch_norm(x, n_out, is_training = True):
         #print(mean,var)
 
     normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
-    return normed
-
-def batch_norm2(x, n_out, scope, is_training = True):
-    with tf.variable_scope(scope):
-        beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
-                name='beta', trainable=True)
-        gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
-                name='gamma', trainable=True)
-        batch_mean, batch_var = tf.nn.moments(x, [0,1], name='moments')
-        ema = tf.train.ExponentialMovingAverage(decay = 0.5)
-
-        def mean_var_with_update():
-            ema_apply_op = ema.apply([batch_mean, batch_var])
-            with tf.control_dependencies([ema_apply_op]):
-                return batch_mean, batch_var
-
-        if is_training:
-            mean, var = mean_var_with_update()
-        else:
-            mean, var = batch_mean, batch_var
-            #mean, var = ema.average(batch_mean), ema.average(batch_var)
-            #print(mean,var)
-
-        normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
     return normed
 
 ### RGB mean value ###
@@ -128,6 +92,8 @@ class ResNet(object):
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
+        self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
+
         noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
         x = tf.reshape(X, [-1, 32, 32, 3])
@@ -142,32 +108,37 @@ class ResNet(object):
         # 2개씩 pad & crop
 
         dim1 = 16
-        h1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
+        h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
+        regularizer = reg1 
 
         h2 = h1
         for i in range(n):
-            h2 = res_block(h2, dim1, dim1, 'layer1', str(i), self.is_training)
+            h2, reg2 = res_block(h2, dim1, dim1, 'layer1', str(i), self.is_training)
+            regularizer += reg2
         
         h3 = h2
         dim2 = 32
         for i in range(n):
-            h3 = res_block(h3, dim1, dim2, 'layer2', str(i), self.is_training)
+            h3, reg3 = res_block(h3, dim1, dim2, 'layer2', str(i), self.is_training)
             dim1 = dim2
+            regularizer += reg3
 
         h4 = h3
         dim2 = 64 
         for i in range(n):
-            h4 = res_block(h4, dim1, dim2, 'layer3', str(i), self.is_training)
+            h4, reg4 = res_block(h4, dim1, dim2, 'layer3', str(i), self.is_training)
             dim1 = dim2
+            regularizer += reg4
 
         h_reshape = tf.reshape(h4, [-1, 64, 64])
         h_max_pool = tf.reduce_max(h_reshape, 1)
 
-        w_fc, b_fc = make_Wb_tuple(64, 10, 'fc')
+        with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+            w_fc, b_fc = make_Wb_tuple(64, 10, 'fc')
         y = tf.matmul(h_max_pool, w_fc) + b_fc
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
-        regularizer = tf.nn.l2_loss(w_fc)
+        regularizer += tf.nn.l2_loss(w_fc)
         '''
         regularizer += tf.nn.l2_loss(w_fc2)
         regularizer += tf.nn.l2_loss(w_fc3)
