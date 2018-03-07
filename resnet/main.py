@@ -5,7 +5,7 @@ from trainer import run_epoch
 
 def main(config):
     if config.outf is None:
-        config.outf = 'save'
+        config.outf = 'sample'
     os.system('mkdir {0}'.format(config.outf))
 
     DataLoader = Dataset(config.datapath, config.num_classes)
@@ -25,8 +25,8 @@ def main(config):
     pfile.close()
 
     with tf.Graph().as_default():
-        trainModel = VGG(config, is_training = True)
-        testModel = VGG(config, is_training = False)
+        trainModel = ResNet(config, is_training = True)
+        testModel = ResNet(config, is_training = False)
 
         with tf.Session() as sess:
             init = tf.global_variables_initializer()
@@ -54,7 +54,7 @@ def main(config):
                     count += 1
                 else:
                     count = 0
-                if count == 3 and num_change < 4:
+                if count == 1 and num_change < 4:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     num_change += 1

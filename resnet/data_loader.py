@@ -16,6 +16,13 @@ def one_hot(label, num_labels):
         tmp[label[i]] = 1
         label[i] = tmp
 
+def normalize(X_train, X_test):
+	mean = np.mean(X_train,axis=(0,1))
+	std = np.std(X_train, axis=(0,1))
+	X_train = (X_train-mean)/(std+1e-7)
+	X_test = (X_test-mean)/(std+1e-7)
+	return X_train, X_test
+
 class Dataset():
     def __init__(self, path, num_classes):
         self.path = path
@@ -43,6 +50,7 @@ class Dataset():
         tmp = list(zip(train_data, train_labels))
         random.shuffle(tmp)
         train_data, train_labels = zip(*tmp)
+        train_data, test_data = normalize(train_data, test_data)
 
         data_train = list(train_data)[:int(-validation * len(train_data))]
         labels_train = list(train_labels)[:int(-validation * len(train_labels))]

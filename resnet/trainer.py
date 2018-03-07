@@ -11,6 +11,7 @@ def run_epoch(session, model, data, printOn = False):
             }
     if model.is_training:
         fetches['train_step'] = model.train_step
+        #fetches['sample'] = model.sample ###
     for iter in range(num_steps):
         vals = session.run(fetches, feed_dict = {
             model.learning_rate: model.lr, 
@@ -20,6 +21,7 @@ def run_epoch(session, model, data, printOn = False):
         loss = vals['loss']
         regul_loss = vals['regul_loss']
         accur = vals['accur']
+        #sample = vals['sample'] ###
 
         sum_loss += loss
         sum_regul_loss += regul_loss

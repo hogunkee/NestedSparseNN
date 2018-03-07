@@ -38,9 +38,9 @@ def conv_maxpool(x, filter_list, bias_list, scope, is_training):
         '''
         w = filter_list[i]
         b = bias_list[i]
-        x = batch_norm(x, int(x.shape[3]), scope, is_training)
         x = tf.nn.relu(conv(x, w) + b)
         #print(x.shape[3])
+        x = batch_norm(x, int(x.shape[3]), scope, is_training)
     x = maxpool(x)
     return x
 
@@ -158,16 +158,6 @@ class VGG(object):
 
         ## fully connected layer ##
         h5_flat = tf.reshape(h5, [-1, 512])
-        h_fc1 = tf.matmul(h5_flat, w_fc1) + b_fc1
-        h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
-        h_relu1 = tf.nn.relu(h_norm1)
-
-        h_fc2 = tf.matmul(h_relu1, w_fc2) + b_fc2
-        h_norm2 = batch_norm2(h_fc2, int(h_fc2.shape[1]), 'fc2', self.is_training)
-        h_relu2 = tf.nn.relu(h_norm2)
-        y = tf.matmul(h_relu2, w_fc3) + b_fc3
-        
-        '''
         h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
         h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
         h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
@@ -177,7 +167,6 @@ class VGG(object):
         h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
         y = tf.matmul(h_norm2, w_fc3) + b_fc3
         #y = tf.matmul(h_dropout2, w_fc3) + b_fc3
-        '''
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
         regularizer = tf.nn.l2_loss(w_fc1)
