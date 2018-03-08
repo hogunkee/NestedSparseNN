@@ -40,7 +40,6 @@ def conv_maxpool(x, filter_list, bias_list, scope, is_training):
         b = bias_list[i]
         x = batch_norm(x, int(x.shape[3]), scope, is_training)
         x = tf.nn.relu(conv(x, w) + b)
-        #print(x.shape[3])
     x = maxpool(x)
     return x
 
@@ -62,8 +61,6 @@ def batch_norm(x, n_out, scope, is_training = True):
             mean, var = mean_var_with_update()
         else:
             mean, var = batch_mean, batch_var
-            #mean, var = ema.average(batch_mean), ema.average(batch_var)
-            #print(mean,var)
 
         normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
     return normed
@@ -86,8 +83,6 @@ def batch_norm2(x, n_out, scope, is_training = True):
             mean, var = mean_var_with_update()
         else:
             mean, var = batch_mean, batch_var
-            #mean, var = ema.average(batch_mean), ema.average(batch_var)
-            #print(mean,var)
 
         normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
     return normed
@@ -103,7 +98,6 @@ class VGG(object):
         self.num_classes = config.num_classes
         self.keep_prob = 1 - config.dropout
         self.lr = config.learning_rate
-        #self.learning_rate = config.learning_rate
         self.beta = config.beta
         self.image_size = config.image_size 
 
@@ -122,7 +116,6 @@ class VGG(object):
         with tf.variable_scope('VGG'):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
-                #print(tf.get_variable_scope().name)
             self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
             W1, B1 = make_Wb_list(3, 64, '1', 2)
             W2, B2 = make_Wb_list(64, 128, '2', 2)
@@ -140,15 +133,14 @@ class VGG(object):
         paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
         x_pad = tf.pad(x_flip, paddings, 'CONSTANT')
         x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [32,32,3]), x_pad, dtype = tf.float32)
-        #x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 2, 2, 36, 36), [32, 32, 3]), x_flip, dtype = tf.float32)
-        #self.sample = x_padcrop[0]
         
         # 2개씩 pad & crop
 
         ## convolution & maxpooling layer ##
-        h1 = conv_maxpool(x_flip, W1, B1, '1', self.is_training)
-        #h1 = conv_maxpool(x_padcrop, W1, B1, '1', self.is_training)
-        #h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
+        if self.is_training:
+            h1 = conv_maxpool(x_padcrop, W1, B1, '1', self.is_training)
+        else:
+            h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
         h2 = conv_maxpool(h1, W2, B2, '2', self.is_training)
         h3 = conv_maxpool(h2, W3, B3, '3', self.is_training)
         h4 = conv_maxpool(h3, W4, B4, '4', self.is_training)
@@ -160,27 +152,13 @@ class VGG(object):
         h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
         h_drop1 = tf.nn.dropout(h_norm1, self.keep_prob)
         h_relu1 = tf.nn.relu(h_drop1)
-        #h_relu1 = tf.nn.relu(h_norm1)
 
         h_fc2 = tf.matmul(h_relu1, w_fc2) + b_fc2
         h_norm2 = batch_norm2(h_fc2, int(h_fc2.shape[1]), 'fc2', self.is_training)
         h_drop2 = tf.nn.dropout(h_norm2, self.keep_prob)
         h_relu2 = tf.nn.relu(h_drop2)
-        #h_relu2 = tf.nn.relu(h_norm2)
         y = tf.matmul(h_relu2, w_fc3) + b_fc3
         
-        '''
-        h_fc1 = tf.nn.relu(tf.matmul(h5_flat, w_fc1) + b_fc1)
-        h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
-        h_dropout1 = tf.nn.dropout(h_norm1, self.keep_prob)
-        h_fc2 = tf.nn.relu(tf.matmul(h_norm1, w_fc2) + b_fc2)
-        #h_fc2 = tf.nn.relu(tf.matmul(h_dropout1, w_fc2) + b_fc2)
-        h_norm2 = batch_norm2(h_fc2, int(h_fc2.shape[1]), 'fc2', self.is_training)
-        h_dropout2 = tf.nn.dropout(h_norm2, self.keep_prob)
-        y = tf.matmul(h_norm2, w_fc3) + b_fc3
-        #y = tf.matmul(h_dropout2, w_fc3) + b_fc3
-        '''
-
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
         regularizer = tf.nn.l2_loss(w_fc1)
         regularizer += tf.nn.l2_loss(w_fc2)
@@ -199,12 +177,9 @@ class VGG(object):
         self.regularizer = regularizer
         self.loss = loss = loss + self.beta * self.regularizer
 
-        '''
-            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-            with tf.control_dependencies(update_ops):
-        '''
         #train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(loss)
         #train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
+
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
             train_step = optimizer.minimize(loss)

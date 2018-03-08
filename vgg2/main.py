@@ -37,6 +37,7 @@ def main(config):
             pre_val = 0
             count = 0 
             num_change = 0
+            count_epoch = 0
             for i in range(config.num_epoch):
                 train_accur = run_epoch(sess, trainModel, Input_train, printOn = True)
                 val_accur = run_epoch(sess, testModel, Input_val)

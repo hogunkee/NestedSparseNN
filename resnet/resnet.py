@@ -66,8 +66,6 @@ def batch_norm(x, n_out, is_training = True):
         mean, var = mean_var_with_update()
     else:
         mean, var = batch_mean, batch_var
-        #mean, var = ema.average(batch_mean), ema.average(batch_var)
-        #print(mean,var)
 
     normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
     return normed
@@ -82,7 +80,6 @@ class ResNet(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
         self.lr = config.learning_rate
-        #self.learning_rate = config.learning_rate
         self.beta = config.beta
         self.image_size = config.image_size 
 
@@ -111,7 +108,6 @@ class ResNet(object):
 
         dim1 = 16
         if self.is_training:
-            #h1, reg1 = conv_bn_relu(x_flip, 3, dim1, 'first', self.is_training)
             h1, reg1 = conv_bn_relu(x_padcrop, 3, dim1, 'first', self.is_training)
         else: 
             h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
@@ -139,8 +135,7 @@ class ResNet(object):
             regularizer += reg4
 
         h_reshape = tf.reshape(h4, [-1, 8*8, 64])
-        h_max_pool = tf.reduce_mean(h_reshape, 1)
-        #h_max_pool = tf.reduce_max(h_reshape, 1)
+        h_max_pool = tf.reduce_max(h_reshape, 1)
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             w_fc, b_fc = make_Wb_tuple(64, 10, 'fc')
@@ -152,12 +147,6 @@ class ResNet(object):
         self.regularizer = regularizer
         self.loss = loss = loss + self.beta * self.regularizer
 
-        '''
-            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-            with tf.control_dependencies(update_ops):
-        '''
-        #train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(loss)
-        #train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
             train_step = optimizer.minimize(loss)
