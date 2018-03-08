@@ -21,7 +21,7 @@ def main(config):
     pfile.write('initial learning rate: '+str(config.learning_rate)+'\n')
     pfile.write('validation split: '+str(config.validation)+'\n')
     pfile.write('regularization rate: '+str(config.beta)+'\n')
-    pfile.write('drop out: '+str(config.dropout)+'\n')
+    pfile.write('n: '+str(config.num_layers)+'\n')
     pfile.close()
 
     with tf.Graph().as_default():
@@ -36,6 +36,7 @@ def main(config):
 
             pre_val = 0
             count = 0 
+            count_epoch = 0
             num_change = 0
             for i in range(config.num_epoch):
                 train_accur = run_epoch(sess, trainModel, Input_train, printOn = True)
@@ -50,15 +51,19 @@ def main(config):
                 pfile.close()
 
                 ### if validation accuracy decreased, decrease learning rate ###
+                count_epoch += 1
                 if (val_accur < pre_val):
                     count += 1
+                '''
                 else:
                     count = 0
-                if count == 1 and num_change < 4:
+                '''
+                if count == 3 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     num_change += 1
                     count = 0
+                    count_epoch = 0
                 pre_val = val_accur 
 
             test_accur = run_epoch(sess, testModel, Input_test)

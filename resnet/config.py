@@ -11,8 +11,8 @@ parser.add_argument('--num_epoch', type = int, default  = 300, help = 'number of
 parser.add_argument('--num_classes', type = int, default  = 10, help = 'number of classes')
 parser.add_argument('--learning_rate', type = float, default = 0.01, help = 'learning rate')
 parser.add_argument('--validation', type = float, default = 0.1, help = 'rate of validation split')
-parser.add_argument('--beta', type = float, default = 5e-4, help = 'regularization rate')
-parser.add_argument('--dropout', type = float, default = 0.5, help = 'probability of drop out on fc layers')
+parser.add_argument('--beta', type = float, default = 0.001, help = 'regularization rate')
+parser.add_argument('--num_layers', type = int, default = 2, help = 'number of blocks in each level')
 
 parser.add_argument('--outf', default = None, help = 'directory to save result')
 parser.add_argument('--savename', required = True, help = 'save result')

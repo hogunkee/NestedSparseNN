@@ -17,8 +17,11 @@ def make_Wb_tuple(dim1, dim2, tag):
     return w, b
 
 ### convolution and maxpooling function ###
-def conv(x, w, stride):
-    return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME')
+def conv(x, w, b, stride):
+    if b is None:
+        return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME')
+    else:
+        return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME') + b
 
 def conv_bn_relu(x, dim1, dim2, tag, is_training):
     if dim2//dim1==2:
@@ -27,8 +30,9 @@ def conv_bn_relu(x, dim1, dim2, tag, is_training):
         stride = 1
     with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
         w = make_variable('Weight-' + tag, [3, 3, dim1, dim2])
+        b = make_bias('bias-' + tag, [dim2])
 
-    x_conv = conv(x, w, stride)
+    x_conv = conv(x, w, b, stride)
     x_bn = batch_norm(x_conv, dim2, is_training)
     x_relu = tf.nn.relu(x_bn)
     return x_relu, tf.nn.l2_loss(w)
@@ -37,8 +41,8 @@ def res_block(x, dim1, dim2, scope, tag, is_training):
     with tf.variable_scope(scope, reuse = tf.AUTO_REUSE):
         shortcut = x
         if dim1 != dim2:
-            w = make_variable('shortcut-' + tag, [3,3,dim1,dim2])
-            shortcut = conv(x, w, 2)
+            w = make_variable('shortcut-' + tag, [1,1,dim1,dim2])
+            shortcut = conv(x, w, None, 2)
 
         x_1, reg1 = conv_bn_relu(x, dim1, dim2, tag + '-1', is_training)
         x_2, reg2 = conv_bn_relu(x_1, dim2, dim2, tag + '-2', is_training)
@@ -86,7 +90,7 @@ class ResNet(object):
         self.num_epoch = config.num_epoch
         self.print_step = config.print_step
         self.is_training = is_training
-        n = self.n = 2
+        n = self.n = config.num_layers
 
 
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
@@ -96,8 +100,8 @@ class ResNet(object):
 
         noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        x = tf.reshape(X, [-1, 32, 32, 3])
-        #x = tf.reshape((X - noise), [-1, 32, 32, 3])
+        #x = tf.reshape(X, [-1, 32, 32, 3])
+        x = tf.reshape((X - noise), [-1, 32, 32, 3])
         '''
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
@@ -108,6 +112,13 @@ class ResNet(object):
         # 2개씩 pad & crop
 
         dim1 = 16
+        '''
+        if self.is_training:
+            h1, reg1 = conv_bn_relu(x_flip, 3, dim1, 'first', self.is_training)
+            #h1, reg1 = conv_bn_relu(x_padcrop, 3, dim1, 'first', self.is_training)
+        else: 
+            h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
+        '''
         h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
         regularizer = reg1 
 
@@ -139,20 +150,7 @@ class ResNet(object):
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
         regularizer += tf.nn.l2_loss(w_fc)
-        '''
-        regularizer += tf.nn.l2_loss(w_fc2)
-        regularizer += tf.nn.l2_loss(w_fc3)
-        for w in W1:
-            regularizer += tf.nn.l2_loss(w)
-        for w in W2:
-            regularizer += tf.nn.l2_loss(w)
-        for w in W3:
-            regularizer += tf.nn.l2_loss(w)
-        for w in W4:
-            regularizer += tf.nn.l2_loss(w)
-        for w in W5:
-            regularizer += tf.nn.l2_loss(w)
-        '''
+
         self.regularizer = regularizer
         self.loss = loss = loss + self.beta * self.regularizer
 
