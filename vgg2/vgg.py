@@ -116,10 +116,8 @@ class VGG(object):
         self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
-        '''
         if is_training == False:
             self.keep_prob = 1.0
-        '''
 
         with tf.variable_scope('VGG'):
             if not is_training:
@@ -160,11 +158,15 @@ class VGG(object):
         h5_flat = tf.reshape(h5, [-1, 512])
         h_fc1 = tf.matmul(h5_flat, w_fc1) + b_fc1
         h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
-        h_relu1 = tf.nn.relu(h_norm1)
+        h_drop1 = tf.nn.dropout(h_norm1, self.keep_prob)
+        h_relu1 = tf.nn.relu(h_drop1)
+        #h_relu1 = tf.nn.relu(h_norm1)
 
         h_fc2 = tf.matmul(h_relu1, w_fc2) + b_fc2
         h_norm2 = batch_norm2(h_fc2, int(h_fc2.shape[1]), 'fc2', self.is_training)
-        h_relu2 = tf.nn.relu(h_norm2)
+        h_drop2 = tf.nn.dropout(h_norm2, self.keep_prob)
+        h_relu2 = tf.nn.relu(h_drop2)
+        #h_relu2 = tf.nn.relu(h_norm2)
         y = tf.matmul(h_relu2, w_fc3) + b_fc3
         
         '''

@@ -28,7 +28,7 @@ def main(config):
         trainModel = ResNet(config, is_training = True)
         testModel = ResNet(config, is_training = False)
 
-        with tf.Session() as sess:
+        with tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))) as sess:
             init = tf.global_variables_initializer()
             #print(init.node_def)
             sess.run(init)

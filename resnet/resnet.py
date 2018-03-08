@@ -102,23 +102,20 @@ class ResNet(object):
 
         #x = tf.reshape(X, [-1, 32, 32, 3])
         x = tf.reshape((X - noise), [-1, 32, 32, 3])
-        '''
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
         x_pad = tf.pad(x_flip, paddings, 'CONSTANT')
         x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [32,32,3]), x_pad, dtype = tf.float32)
-        '''
         
         # 2개씩 pad & crop
 
         dim1 = 16
-        '''
         if self.is_training:
-            h1, reg1 = conv_bn_relu(x_flip, 3, dim1, 'first', self.is_training)
-            #h1, reg1 = conv_bn_relu(x_padcrop, 3, dim1, 'first', self.is_training)
+            #h1, reg1 = conv_bn_relu(x_flip, 3, dim1, 'first', self.is_training)
+            h1, reg1 = conv_bn_relu(x_padcrop, 3, dim1, 'first', self.is_training)
         else: 
             h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
-        '''
+
         h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
         regularizer = reg1 
 
@@ -141,8 +138,9 @@ class ResNet(object):
             dim1 = dim2
             regularizer += reg4
 
-        h_reshape = tf.reshape(h4, [-1, 64, 64])
-        h_max_pool = tf.reduce_max(h_reshape, 1)
+        h_reshape = tf.reshape(h4, [-1, 8*8, 64])
+        h_max_pool = tf.reduce_mean(h_reshape, 1)
+        #h_max_pool = tf.reduce_max(h_reshape, 1)
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             w_fc, b_fc = make_Wb_tuple(64, 10, 'fc')
