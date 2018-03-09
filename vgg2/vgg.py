@@ -38,8 +38,9 @@ def conv_maxpool(x, filter_list, bias_list, scope, is_training):
         '''
         w = filter_list[i]
         b = bias_list[i]
+        x = conv(x, w) + b
         x = batch_norm(x, int(x.shape[3]), scope, is_training)
-        x = tf.nn.relu(conv(x, w) + b)
+        x = tf.nn.relu(x)
     x = maxpool(x)
     return x
 
