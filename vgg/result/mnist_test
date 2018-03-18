@@ -1,0 +1,8 @@
+dataset: mnist
+image size: 28
+num epoch: 300
+batch size: 128
+initial learning rate: 0.1
+validation split: 0.1
+regularization rate: 0.0005
+drop out: 0.5

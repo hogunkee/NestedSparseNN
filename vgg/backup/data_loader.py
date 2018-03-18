@@ -17,8 +17,7 @@ def one_hot(label, num_labels):
         label[i] = tmp
 
 class Dataset():
-    def __init__(self, dataset, path, num_classes):
-        self.dataset = dataset
+    def __init__(self, path, num_classes):
         self.path = path
         self.num_labels = num_classes
 
@@ -27,31 +26,20 @@ class Dataset():
         train_data = []
         test_labels = []
         test_data = []
-
-        if self.dataset == 'mnist':
-            from tensorflow.examples.tutorials.mnist import input_data
-            mnist = input_data.read_data_sets('./sample/MNIST_data', one_hot = True)
-            train_labels = mnist.train.labels
-            train_data = mnist.train.images
-            test_labels = mnist.test.labels
-            test_data = mnist.train.images
-
-        else:
-            for fname in os.listdir(self.path):
-                fpath = os.path.join(self.path, fname)
-                _label, _data = unpickle(fpath)
-                print('load', fname)
-                if fname == 'test_batch': 
-                    test_labels = _label
-                    test_data = _data
+        for fname in os.listdir(self.path):
+            fpath = os.path.join(self.path, fname)
+            _label, _data = unpickle(fpath)
+            print('load', fname)
+            if fname == 'test_batch': 
+                test_labels = _label
+                test_data = _data
+            else:
+                if train_labels==[]:
+                    train_labels = _label
+                    train_data = _data
                 else:
-                    if train_labels==[]:
-                        train_labels = _label
-                        train_data = _data
-                    else:
-                        train_labels = train_labels + _label
-                        train_data = np.concatenate((train_data, _data))
-
+                    train_labels = train_labels + _label
+                    train_data = np.concatenate((train_data, _data))
         tmp = list(zip(train_data, train_labels))
         random.shuffle(tmp)
         train_data, train_labels = zip(*tmp)
@@ -63,10 +51,9 @@ class Dataset():
         data_test = test_data
         labels_test = test_labels
 
-        if self.dataset != 'mnist':
-            one_hot(labels_train, self.num_labels)
-            one_hot(labels_val, self.num_labels)
-            one_hot(labels_test, self.num_labels)
+        one_hot(labels_train, self.num_labels)
+        one_hot(labels_val, self.num_labels)
+        one_hot(labels_test, self.num_labels)
         print('train data length: %d' %(len(labels_train)))
         print('validation data length: %d' %(len(labels_val)))
         print('test data length: %d' %(len(labels_test)))

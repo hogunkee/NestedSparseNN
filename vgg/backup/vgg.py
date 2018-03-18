@@ -50,17 +50,13 @@ class VGG(object):
         self.beta = config.beta
         self.is_training = is_training
         self.image_size = config.image_size 
-        if self.image_size == 28:
-            self.input_channel = 1
-        else:
-            self.input_channel = 3
 
         self.batch_size = config.batch_size
         self.num_epoch = config.num_epoch
         self.print_step = config.print_step
 
 
-        self.X = X = tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)])
+        self.X = X = tf.placeholder(tf.float32, shape = [None, 3*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
         '''
@@ -72,7 +68,7 @@ class VGG(object):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
             self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
-            W1, B1 = make_Wb_list(self.input_channel, 64, '1', 2)
+            W1, B1 = make_Wb_list(3, 64, '1', 2)
             W2, B2 = make_Wb_list(64, 128, '2', 2)
             W3, B3 = make_Wb_list(128, 256, '3', 3)
             W4, B4 = make_Wb_list(256, 512, '4', 3)
@@ -82,8 +78,7 @@ class VGG(object):
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
-        #x = tf.reshape(X - noise, [-1, self.image_size, self.image_size, self.input_channel])
+        x = tf.reshape(X - noise, [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         x_padcrop = tf.map_fn(lambda k: tf.random_crop(tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), x_flip, dtype = tf.float32)
 
