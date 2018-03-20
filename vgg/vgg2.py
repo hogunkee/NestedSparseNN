@@ -101,10 +101,17 @@ class VGG2(object):
         self.keep_prob = 1 - config.dropout
         self.lr = config.learning_rate
         self.beta = config.beta
-        self.image_size = config.image_size 
-        if self.image_size == 28:
+        self.padding = config.padding
+        self.norm = config.norm
+
+        if self.dataset=='mnist':
+            self.image_size = 28
             self.input_channel = 1
+        elif self.dataset=='cifar10' or self.dataset=='cifar100':
+            self.image_size = 32
+            self.input_channel = 3
         else:
+            self.image_size = 224 
             self.input_channel = 3
 
         self.batch_size = config.batch_size
@@ -123,7 +130,7 @@ class VGG2(object):
             if not is_training:
                 tf.get_variable_scope().reuse_variables()
             self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
-            W1, B1 = make_Wb_list(3, 64, '1', 2)
+            W1, B1 = make_Wb_list(self.input_channel, 64, '1', 2)
             W2, B2 = make_Wb_list(64, 128, '2', 2)
             W3, B3 = make_Wb_list(128, 256, '3', 3)
             W4, B4 = make_Wb_list(256, 512, '4', 3)
@@ -133,20 +140,20 @@ class VGG2(object):
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        if self.dataset == 'mnist':
+        if self.dataset == 'mnist' or not self.norm:
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         else:  
-            x = tf.reshape(X - noise, [-1, self.image_size, self.image_size, self.input_channel])
+            x = tf.reshape((X - noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
         #x = tf.reshape((X - noise), [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
         x_pad = tf.pad(x_flip, paddings, 'CONSTANT')
-        x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [32,32,3]), x_pad, dtype = tf.float32)
+        x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [self.image_size,self.image_size,self.input_channel]), x_pad, dtype = tf.float32)
         
         # 2개씩 pad & crop
 
         ## convolution & maxpooling layer ##
-        if self.is_training:
+        if self.is_training and self.padding:
             h1 = conv_maxpool(x_padcrop, W1, B1, '1', self.is_training)
         else:
             h1 = conv_maxpool(x, W1, B1, '1', self.is_training)

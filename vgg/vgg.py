@@ -49,10 +49,11 @@ class VGG(object):
         #self.learning_rate = config.learning_rate
         self.beta = config.beta
         self.is_training = is_training
-        self.image_size = config.image_size 
-        if self.image_size == 28:
+        if self.dataset == 'mnist':
+            self.image_size = 28
             self.input_channel = 1
         else:
+            self.image_size = 32
             self.input_channel = 3
 
         self.batch_size = config.batch_size

@@ -34,7 +34,7 @@ class Dataset():
             train_labels = mnist.train.labels
             train_data = mnist.train.images
             test_labels = mnist.test.labels
-            test_data = mnist.train.images
+            test_data = mnist.test.images
 
         else:
             for fname in os.listdir(self.path):
