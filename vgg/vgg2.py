@@ -97,6 +97,7 @@ mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [me
 class VGG2(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
+        self.dataset = config.dataset
         self.keep_prob = 1 - config.dropout
         self.lr = config.learning_rate
         self.beta = config.beta
@@ -132,7 +133,10 @@ class VGG2(object):
             w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        x = tf.reshape(X - noise, [-1, self.image_size, self.image_size, self.input_channel])
+        if self.dataset == 'mnist':
+            x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+        else:  
+            x = tf.reshape(X - noise, [-1, self.image_size, self.image_size, self.input_channel])
         #x = tf.reshape((X - noise), [-1, 32, 32, 3])
         x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
         paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
