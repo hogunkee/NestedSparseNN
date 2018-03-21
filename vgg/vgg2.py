@@ -157,12 +157,14 @@ class VGG2(object):
             h1 = conv_maxpool(x_padcrop, W1, B1, '1', self.is_training)
         else:
             h1 = conv_maxpool(x, W1, B1, '1', self.is_training)
+        print('shape of h:', h1.shape)
         h2 = conv_maxpool(h1, W2, B2, '2', self.is_training)
         h3 = conv_maxpool(h2, W3, B3, '3', self.is_training)
         h4 = conv_maxpool(h3, W4, B4, '4', self.is_training)
         h5 = conv_maxpool(h4, W5, B5, '5', self.is_training)
 
         ## fully connected layer ##
+        print('shape of h:', h5.shape)
         h5_flat = tf.reshape(h5, [-1, 512])
         h_fc1 = tf.matmul(h5_flat, w_fc1) + b_fc1
         h_norm1 = batch_norm2(h_fc1, int(h_fc1.shape[1]), 'fc1', self.is_training)
@@ -174,6 +176,7 @@ class VGG2(object):
         h_drop2 = tf.nn.dropout(h_norm2, self.keep_prob)
         h_relu2 = tf.nn.relu(h_drop2)
         y = tf.matmul(h_relu2, w_fc3) + b_fc3
+        print('shape of y:', y.shape)
         
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
         regularizer = tf.nn.l2_loss(w_fc1)
