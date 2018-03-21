@@ -8,14 +8,16 @@ def main(config):
         config.outf = 'sample'
     os.system('mkdir {0}'.format(config.outf))
 
-    DataLoader = Dataset(config.datapath, config.num_classes)
+    DataLoader = Dataset(config.dataset, config.datapath, config.num_classes)
     Input_train, Input_val, Input_test = DataLoader(config.validation)
 
     ### writing results ###
-    savepath = os.path.join(config.outf, config.savename)
+    filename = config.savename+'_pad:'+str(config.padding)+'_norm:'+str(config.norm)
+    savepath = os.path.join(config.outf, filename)
     pfile = open(savepath, 'w+')
     pfile.write('dataset: '+str(config.dataset)+'\n')
-    pfile.write('image size: '+str(config.image_size)+'\n')
+    pfile.write('padding: '+str(config.padding)+'\n')
+    pfile.write('pixel norm: '+str(config.norm)+'\n\n')
     pfile.write('num epoch: '+str(config.num_epoch)+'\n')
     pfile.write('batch size: '+str(config.batch_size)+'\n')
     pfile.write('initial learning rate: '+str(config.learning_rate)+'\n')
@@ -60,17 +62,20 @@ def main(config):
                 '''
                 if count == 3 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
-                    print('change learning rate %g:' %(trainModel.lr))
+                    print('change learning rate: %g' %(trainModel.lr))
+                    pfile = open(savepath, 'a+')
+                    pfile.write("\nchange learning rate: %g\n" %trainModel.lr)
+                    pfile.close()
                     num_change += 1
                     count = 0
                     count_epoch = 0
                 pre_val = val_accur 
 
-            test_accur = run_epoch(sess, testModel, Input_test)
-            print("test accur: %.3f" %test_accur)
-            pfile = open(savepath, 'a+')
-            pfile.write("\ntest accur: %.3f\n" %test_accur)
-            pfile.close()
+                test_accur = run_epoch(sess, testModel, Input_test)
+                print("test accur: %.3f" %test_accur)
+                pfile = open(savepath, 'a+')
+                pfile.write("\ntest accur: %.3f\n" %test_accur)
+                pfile.close()
 
 if __name__ == "__main__":
     config = get_config()

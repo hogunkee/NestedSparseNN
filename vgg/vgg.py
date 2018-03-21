@@ -31,32 +31,14 @@ class VGG(object):
         self.print_step = config.print_step
         self.is_training = is_training
 
+        if not self.is_training:
+            self.keep_prob = 1.0
+
 
         self.X = X = tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)])
         self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
-
-        '''
-        if is_training == False:
-            self.keep_prob = 1.0
-        '''
-
-        '''
-        with tf.variable_scope('VGG'):
-            if not is_training:
-                tf.get_variable_scope().reuse_variables()
-            self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
-            W1, B1 = make_Wb_list(self.input_channel, 64, '1', 2)
-            W2, B2 = make_Wb_list(64, 128, '2', 2)
-            W3, B3 = make_Wb_list(128, 256, '3', 3)
-            W4, B4 = make_Wb_list(256, 512, '4', 3)
-            W5, B5 = make_Wb_list(512, 512, '5', 3)
-            w_fc1, b_fc1 = make_Wb_tuple(512, 512, 'fc1')
-            w_fc2, b_fc2 = make_Wb_tuple(512, 512, 'fc2')
-            w_fc3, b_fc3 = make_Wb_tuple(512, 10, 'fc3')
-            noise = tf.constant([mean_RGB for i in range(self.batch_size)])
-        '''
 
         ### pixel normalization ###
         if self.dataset=='cifar10' and self.norm:
@@ -66,7 +48,7 @@ class VGG(object):
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
 
         ### crop and padding ###
-        if self.padding:
+        if self.padding and self.is_training:
             x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
@@ -124,30 +106,27 @@ class VGG(object):
         #fc layer 512, 512, 10
         h14 = tf.reshape(h13, [-1, 512])
         h14 = self.fc(h14, 512, 'fc-1')
+        h14 = tf.nn.dropout(h14, self.keep_prob)
+        h14 = self.batch_norm2(h14, 512, 'layer-14')
         h14 = tf.nn.relu(h14)
         h15 = self.fc(h14, 512, 'fc-2')
+        h15 = tf.nn.dropout(h15, self.keep_prob)
+        h15 = self.batch_norm2(h15, 512, 'layer-15')
         h15 = tf.nn.relu(h15)
         y = self.fc(h15, 10, 'fc-3')
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        loss += self.beta * sum(reg_losses)
+        loss += sum(reg_losses)
         self.loss = loss
         self.regularizer = sum(reg_losses)
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
-            optimizer = tf.train.AdamOptimizer(self.lr)
             #optimizer = tf.train.AdamOptimizer(self.learning_rate)
-            #optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
+            optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
             train_step = optimizer.minimize(loss, var_list = tf.trainable_variables())
-        '''
-        with tf.variable_scope('VGG'):
-            if not is_training:
-                tf.get_variable_scope().reuse_variables()
-            train_step = tf.train.AdamOptimizer(self.learning_rate).minimize(loss)
-        '''
-        self.train_step = train_step
 
+        self.train_step = train_step
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
         self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 
@@ -199,7 +178,7 @@ class VGG(object):
             normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
         return normed
 
-    def batch_norm2(x, num_out, scope):
+    def batch_norm2(self, x, num_out, scope):
         with tf.variable_scope(scope):
             beta = tf.Variable(tf.constant(0.0, shape=[num_out]),
                     name='beta', trainable=True)

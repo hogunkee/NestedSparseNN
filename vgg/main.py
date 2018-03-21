@@ -13,7 +13,8 @@ def main(config):
     Input_train, Input_val, Input_test = DataLoader(config.validation)
 
     ### writing results ###
-    savepath = os.path.join(config.outf, config.savename)
+    filename = config.savename+'_ver:'+str(config.version)+'_pad:'+str(config.padding)+'_norm:'+str(config.norm)
+    savepath = os.path.join(config.outf, filename)
     pfile = open(savepath, 'w+')
     pfile.write('version: '+str(config.version)+'\n')
     pfile.write('dataset: '+str(config.dataset)+'\n')
@@ -69,6 +70,9 @@ def main(config):
                 if count == 3 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
+                    pfile = open(savepath, 'a+')
+                    pfile.write("\nchange learning rate: %g\n" %trainModel.lr)
+                    pfile.close()
                     num_change += 1
                     count = 0
                     count_epoch = 0

@@ -16,15 +16,9 @@ def one_hot(label, num_labels):
         tmp[label[i]] = 1
         label[i] = tmp
 
-def normalize(X_train, X_test):
-	mean = np.mean(X_train,axis=(0,1))
-	std = np.std(X_train, axis=(0,1))
-	X_train = (X_train-mean)/(std+1e-7)
-	X_test = (X_test-mean)/(std+1e-7)
-	return X_train, X_test
-
 class Dataset():
-    def __init__(self, path, num_classes):
+    def __init__(self, dataset, path, num_classes):
+        self.dataset = dataset
         self.path = path
         self.num_labels = num_classes
 
@@ -33,24 +27,34 @@ class Dataset():
         train_data = []
         test_labels = []
         test_data = []
-        for fname in os.listdir(self.path):
-            fpath = os.path.join(self.path, fname)
-            _label, _data = unpickle(fpath)
-            print('load', fname)
-            if fname == 'test_batch': 
-                test_labels = _label
-                test_data = _data
-            else:
-                if train_labels==[]:
-                    train_labels = _label
-                    train_data = _data
+
+        if self.dataset == 'mnist':
+            from tensorflow.examples.tutorials.mnist import input_data
+            mnist = input_data.read_data_sets('./sample/MNIST_data', one_hot = True)
+            train_labels = mnist.train.labels
+            train_data = mnist.train.images
+            test_labels = mnist.test.labels
+            test_data = mnist.test.images
+
+        else:
+            for fname in os.listdir(self.path):
+                fpath = os.path.join(self.path, fname)
+                _label, _data = unpickle(fpath)
+                print('load', fname)
+                if fname == 'test_batch': 
+                    test_labels = _label
+                    test_data = _data
                 else:
-                    train_labels = train_labels + _label
-                    train_data = np.concatenate((train_data, _data))
+                    if train_labels==[]:
+                        train_labels = _label
+                        train_data = _data
+                    else:
+                        train_labels = train_labels + _label
+                        train_data = np.concatenate((train_data, _data))
+
         tmp = list(zip(train_data, train_labels))
         random.shuffle(tmp)
         train_data, train_labels = zip(*tmp)
-        train_data, test_data = normalize(train_data, test_data)
 
         data_train = list(train_data)[:int(-validation * len(train_data))]
         labels_train = list(train_labels)[:int(-validation * len(train_labels))]
@@ -59,9 +63,10 @@ class Dataset():
         data_test = test_data
         labels_test = test_labels
 
-        one_hot(labels_train, self.num_labels)
-        one_hot(labels_val, self.num_labels)
-        one_hot(labels_test, self.num_labels)
+        if self.dataset != 'mnist':
+            one_hot(labels_train, self.num_labels)
+            one_hot(labels_val, self.num_labels)
+            one_hot(labels_test, self.num_labels)
         print('train data length: %d' %(len(labels_train)))
         print('validation data length: %d' %(len(labels_val)))
         print('test data length: %d' %(len(labels_test)))

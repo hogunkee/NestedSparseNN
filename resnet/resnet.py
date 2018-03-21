@@ -2,74 +2,6 @@
 
 import tensorflow as tf
 
-### function to make variable ###
-def make_variable(name, size):
-    init = tf.contrib.layers.xavier_initializer()
-    return tf.get_variable(name, size, dtype=tf.float32, initializer=init)
-
-def make_bias(name, size):
-    init = tf.zeros_initializer()
-    return tf.get_variable(name, size, dtype=tf.float32, initializer=init)
-
-def make_Wb_tuple(dim1, dim2, tag):
-    w = make_variable('Weight-' + tag, [dim1, dim2])
-    b = make_bias('bias-' + tag, [dim2])
-    return w, b
-
-### convolution and maxpooling function ###
-def conv(x, w, b, stride):
-    if b is None:
-        return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME')
-    else:
-        return tf.nn.conv2d(x, w, strides=[1,stride,stride,1], padding='SAME') + b
-
-def conv_bn_relu(x, dim1, dim2, tag, is_training):
-    if dim2//dim1==2:
-        stride = 2
-    else:
-        stride = 1
-    with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
-        w = make_variable('Weight-' + tag, [3, 3, dim1, dim2])
-        b = make_bias('bias-' + tag, [dim2])
-
-    x_conv = conv(x, w, b, stride)
-    x_bn = batch_norm(x_conv, dim2, is_training)
-    x_relu = tf.nn.relu(x_bn)
-    return x_relu, tf.nn.l2_loss(w)
-
-def res_block(x, dim1, dim2, scope, tag, is_training):
-    with tf.variable_scope(scope, reuse = tf.AUTO_REUSE):
-        shortcut = x
-        if dim1 != dim2:
-            w = make_variable('shortcut-' + tag, [1,1,dim1,dim2])
-            shortcut = conv(x, w, None, 2)
-
-        x_1, reg1 = conv_bn_relu(x, dim1, dim2, tag + '-1', is_training)
-        x_2, reg2 = conv_bn_relu(x_1, dim2, dim2, tag + '-2', is_training)
-
-        return tf.add(x_2, shortcut), tf.add(reg1, reg2)
-
-def batch_norm(x, n_out, is_training = True):
-    beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
-            name='beta', trainable=True)
-    gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
-            name='gamma', trainable=True)
-    batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
-    ema = tf.train.ExponentialMovingAverage(decay = 0.5)
-
-    def mean_var_with_update():
-        ema_apply_op = ema.apply([batch_mean, batch_var])
-        with tf.control_dependencies([ema_apply_op]):
-            return batch_mean, batch_var
-
-    if is_training:
-        mean, var = mean_var_with_update()
-    else:
-        mean, var = batch_mean, batch_var
-
-    normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
-    return normed
-
 ### RGB mean value ###
 mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
 std = 64.15
@@ -79,9 +11,21 @@ mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [me
 class ResNet(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
+        self.dataset = config.dataset
         self.lr = config.learning_rate
         self.beta = config.beta
-        self.image_size = config.image_size 
+        self.padding = config.padding
+        self.norm = config.norm
+
+        if self.dataset=='mnist':
+            self.image_size = 28
+            self.input_channel = 1
+        elif self.dataset=='cifar10' or self.dataset=='cifar100':
+            self.image_size = 32
+            self.input_channel = 3
+        else:
+            self.image_size = 224 
+            self.input_channel = 3
 
         self.batch_size = config.batch_size
         self.num_epoch = config.num_epoch
@@ -97,57 +41,44 @@ class ResNet(object):
 
         noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
-        #x = tf.reshape(X, [-1, 32, 32, 3])
-        x = tf.reshape((X - noise), [-1, 32, 32, 3])
-        x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
-        paddings = tf.constant([[0,0],[2,2],[2,2],[0,0]])
-        x_pad = tf.pad(x_flip, paddings, 'CONSTANT')
-        x_padcrop = tf.map_fn(lambda k: tf.random_crop(k, [32,32,3]), x_pad, dtype = tf.float32)
+        ### pixel normalization ###
+        if self.dataset=='cifar10' and self.norm:
+            noise = tf.constant([mean_RGB for i in range(self.batch_size)])
+            x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
+        else:
+            x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+
+        ### crop and padding ###
+        if self.padding and self.is_training:
+            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+            x = tf.map_fn(lambda k: tf.random_crop(
+                tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
+                x_flip, dtype = tf.float32)
         
-        # 2개씩 pad & crop
+        h = self.conv_bn_relu(x, 16, 'first')
 
-        dim1 = 16
-        if self.is_training:
-            h1, reg1 = conv_bn_relu(x_padcrop, 3, dim1, 'first', self.is_training)
-        else: 
-            h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
-
-        h1, reg1 = conv_bn_relu(x, 3, dim1, 'first', self.is_training)
-        regularizer = reg1 
-
-        h2 = h1
         for i in range(n):
-            h2, reg2 = res_block(h2, dim1, dim1, 'layer1', str(i), self.is_training)
-            regularizer += reg2
-        
-        h3 = h2
-        dim2 = 32
+            h = self.res_block(h, 16, 'layer1-'+str(i))
+
         for i in range(n):
-            h3, reg3 = res_block(h3, dim1, dim2, 'layer2', str(i), self.is_training)
-            dim1 = dim2
-            regularizer += reg3
+            h = self.res_block(h, 32, 'layer2-'+str(i))
 
-        h4 = h3
-        dim2 = 64 
         for i in range(n):
-            h4, reg4 = res_block(h4, dim1, dim2, 'layer3', str(i), self.is_training)
-            dim1 = dim2
-            regularizer += reg4
+            h = self.res_block(h, 64, 'layer3-'+str(i))
 
-        h_reshape = tf.reshape(h4, [-1, 8*8, 64])
-        h_max_pool = tf.reduce_max(h_reshape, 1)
-
-        with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
-            w_fc, b_fc = make_Wb_tuple(64, 10, 'fc')
-        y = tf.matmul(h_max_pool, w_fc) + b_fc
+        h = tf.reshape(h, [-1, 8*8, 64])
+        h = tf.reduce_max(h, 1)
+        y = self.fc(h, 10, 'fc-layer')
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
-        regularizer += tf.nn.l2_loss(w_fc)
+        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        loss += sum(reg_losses)
 
-        self.regularizer = regularizer
-        self.loss = loss = loss + self.beta * self.regularizer
+        self.loss = loss
+        self.regularizer = sum(reg_losses)
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
+            #optimizer = tf.train.AdamOptimizer(self.learning_rate)
             optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, use_nesterov=True)
             train_step = optimizer.minimize(loss)
             self.train_step = train_step
@@ -155,3 +86,80 @@ class ResNet(object):
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
         self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
 
+    ### convolution, maxpooling and fully-connected function ###
+    def conv(self, x, num_out, stride, scope):
+        with tf.variable_scope(scope):
+            if not self.is_training:
+                tf.get_variable_scope().reuse_variables()
+            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            b_init = tf.constant_initializer(0.0)
+            regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
+            return tf.contrib.layers.conv2d(x, num_out, [3,3], stride, activation_fn=None, 
+                    weights_initializer=c_init, weights_regularizer=regularizer,
+                    biases_initializer=b_init)
+
+    def fc(self, x, num_out, scope):
+        with tf.variable_scope(scope):
+            if not self.is_training:
+                tf.get_variable_scope().reuse_variables()
+            f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            b_init = tf.constant_initializer(0.0)
+            regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
+            return tf.contrib.layers.fully_connected(x, num_out, activation_fn=None,
+                    weights_initializer=f_init, weights_regularizer=regularizer,
+                    biases_initializer=b_init)
+
+    def batch_norm(self, x, num_out, scope):
+        with tf.variable_scope(scope):
+            beta = tf.Variable(tf.constant(0.0, shape=[num_out]),
+                    name='beta', trainable=True)
+            gamma = tf.Variable(tf.constant(1.0, shape=[num_out]),
+                    name='gamma', trainable=True)
+            batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
+            ema = tf.train.ExponentialMovingAverage(decay = 0.5)
+
+            def mean_var_with_update():
+                ema_apply_op = ema.apply([batch_mean, batch_var])
+                with tf.control_dependencies([ema_apply_op]):
+                    return batch_mean, batch_var
+
+            if self.is_training:
+                mean, var = mean_var_with_update()
+            else:
+                mean, var = batch_mean, batch_var
+
+            normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-5)
+        return normed
+
+    def conv_bn_relu(self, x, num_out, scope):
+        if num_out//int(x.shape[3])==2:
+            stride = 2
+        else:
+            stride = 1
+
+        x_conv = self.conv(x, num_out, stride, scope)
+        x_bn = self.batch_norm(x_conv, num_out, scope)
+        x_relu = tf.nn.relu(x_bn)
+        return x_relu
+
+    def shortcut(self, x, num_out, scope):
+        with tf.variable_scope(scope):
+            if not self.is_training:
+                tf.get_variable_scope().reuse_variables()
+            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            b_init = tf.constant_initializer(0.0)
+            regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
+            return tf.contrib.layers.conv2d(x, num_out, [1,1], 2, activation_fn=None, 
+                    weights_initializer=c_init, weights_regularizer=regularizer,
+                    biases_initializer=b_init)
+
+    def res_block(self, x, num_out, scope):
+        with tf.variable_scope(scope, reuse = tf.AUTO_REUSE):
+            shortcut = x
+            if int(x.shape[3]) != num_out:
+                shortcut = self.shortcut(x, num_out, scope+'-sc')
+
+            x = self.conv_bn_relu(x, num_out, scope + '-1')
+            x = self.conv_bn_relu(x, num_out, scope + '-2')
+
+            return tf.add(x, shortcut)
