@@ -41,18 +41,22 @@ class VGG(object):
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
 
         ### pixel normalization ###
-        if self.dataset=='cifar10' and self.norm:
+        if self.dataset=='cifar10' and self.norm==True:
+            print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
         else:
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
 
-        ### crop and padding ###
-        if self.padding and self.is_training:
-            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+        ### flip, crop and padding ###
+        if self.is_training==True:
+            x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+
+        if self.padding==True and self.is_training==True:
+            print('image crop and padding')
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x_flip, dtype = tf.float32)
+                x, dtype = tf.float32)
 
         #channel: 64
         h1 = self.conv(x, 64, 'layer-1')
@@ -135,7 +139,8 @@ class VGG(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            c_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.conv2d(x, num_out, [3,3], activation_fn=None, 
@@ -149,7 +154,8 @@ class VGG(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            f_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.fully_connected(x, num_out, activation_fn=None,

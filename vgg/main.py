@@ -67,7 +67,7 @@ def main(config):
                 else:
                     count = 0
                 '''
-                if count == 3 and num_change < 4 and count_epoch > 10:
+                if count == 4 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     pfile = open(savepath, 'a+')
