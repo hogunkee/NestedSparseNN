@@ -41,22 +41,18 @@ class VGG(object):
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
 
         ### pixel normalization ###
-        if self.dataset=='cifar10' and self.norm==True:
-            print('pixel normalization')
+        if self.dataset=='cifar10' and self.norm:
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
         else:
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
 
-        ### flip, crop and padding ###
-        if self.is_training==True:
-            x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
-
-        if self.padding==True and self.is_training==True:
-            print('image crop and padding')
+        ### crop and padding ###
+        if self.padding and self.is_training:
+            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x, dtype = tf.float32)
+                x_flip, dtype = tf.float32)
 
         #channel: 64
         h1 = self.conv(x, 64, 'layer-1')
@@ -133,14 +129,16 @@ class VGG(object):
         self.train_step = train_step
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
         self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
+        ## tensorboard summary ##
+        tf.summary.scalar('accuracy', self.accur)
+        self.merged = tf.summary.merge_all()
 
     ### convolution, maxpooling and fully-connected function ###
     def conv(self, x, num_out, scope):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            #c_init = tf.truncated_normal_initializer(stddev=5e-2)
-            c_init = tf.contrib.layers.xavier_initializer()
+            c_init = tf.truncated_normal_initializer(stddev=5e-2)
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.conv2d(x, num_out, [3,3], activation_fn=None, 
@@ -154,8 +152,7 @@ class VGG(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            #f_init = tf.truncated_normal_initializer(stddev=5e-2)
-            f_init = tf.contrib.layers.xavier_initializer()
+            f_init = tf.truncated_normal_initializer(stddev=5e-2)
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.fully_connected(x, num_out, activation_fn=None,

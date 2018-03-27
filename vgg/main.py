@@ -37,7 +37,12 @@ def main(config):
         trainModel = Model(config, is_training = True)
         testModel = Model(config, is_training = False)
 
+
         with tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))) as sess:
+            ## summary writer ##
+            train_writer = tf.summary.FileWriter(config.out + '/train', sess.graph)
+            test_writer = tf.summary.FileWriter(config.out + '/test')
+
             init = tf.global_variables_initializer()
             #print(init.node_def)
             sess.run(init)
@@ -48,8 +53,11 @@ def main(config):
             num_change = 0
             count_epoch = 0
             for i in range(config.num_epoch):
-                train_accur = run_epoch(sess, trainModel, Input_train, printOn = True)
-                val_accur = run_epoch(sess, testModel, Input_val)
+                train_accur, summary = run_epoch(sess, trainModel, Input_train, printOn = True)
+                val_accur, _ = run_epoch(sess, testModel, Input_val)
+                ## write summary ##
+                train_writer.add_summary(summary, i)
+
                 print("Epoch: %d/%d" %(i+1, config.num_epoch))
                 print("train accur: %.3f" %train_accur)
                 print("val accur: %.3f" %val_accur)
@@ -67,7 +75,7 @@ def main(config):
                 else:
                     count = 0
                 '''
-                if count == 4 and num_change < 4 and count_epoch > 10:
+                if count == 3 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
                     pfile = open(savepath, 'a+')
@@ -78,11 +86,17 @@ def main(config):
                     count_epoch = 0
                 pre_val = val_accur 
 
-                test_accur = run_epoch(sess, testModel, Input_test)
+                test_accur, summary = run_epoch(sess, testModel, Input_test)
+                ## write summary ##
+                test_writer.add_summary(summary, i)
+
                 print("test accur: %.3f" %test_accur)
                 pfile = open(savepath, 'a+')
                 pfile.write("\ntest accur: %.3f\n" %test_accur)
                 pfile.close()
+            ## close summary writers ##
+            train_writer.close()
+            test_writer.close()
 
 if __name__ == "__main__":
     config = get_config()
