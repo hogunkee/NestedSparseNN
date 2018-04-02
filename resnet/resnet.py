@@ -42,18 +42,24 @@ class ResNet(object):
         noise = tf.constant([mean_RGB for i in range(self.batch_size)])
 
         ### pixel normalization ###
-        if self.dataset=='cifar10' and self.norm:
+        if self.dataset=='cifar10' and self.norm=='True':
+            print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
         else:
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
 
-        ### crop and padding ###
-        if self.padding and self.is_training:
-            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+        ### flip, crop and padding ###
+        if self.is_training==True:
+            print('Training Model')
+            print('image randomly flip')
+            x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+
+        if self.padding=='True' and self.is_training==True:
+            print('image crop and padding')
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x_flip, dtype = tf.float32)
+                x, dtype = tf.float32)
         
         h = self.conv_bn_relu(x, 16, 'first')
 
@@ -67,7 +73,8 @@ class ResNet(object):
             h = self.res_block(h, 64, 'layer3-'+str(i))
 
         h = tf.reshape(h, [-1, 8*8, 64])
-        h = tf.reduce_max(h, 1)
+        h = tf.reduce_mean(h, 1)
+        #h = tf.reduce_max(h, 1)
         y = self.fc(h, 10, 'fc-layer')
 
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=y))
@@ -91,7 +98,8 @@ class ResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            c_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.conv2d(x, num_out, [3,3], stride, activation_fn=None, 
@@ -102,7 +110,8 @@ class ResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            f_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.fully_connected(x, num_out, activation_fn=None,
@@ -112,9 +121,9 @@ class ResNet(object):
     def batch_norm(self, x, num_out, scope):
         with tf.variable_scope(scope):
             beta = tf.Variable(tf.constant(0.0, shape=[num_out]),
-                    name='beta', trainable=True)
+                    name='beta', trainable=self.is_training)
             gamma = tf.Variable(tf.constant(1.0, shape=[num_out]),
-                    name='gamma', trainable=True)
+                    name='gamma', trainable=self.is_training)
             batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
             ema = tf.train.ExponentialMovingAverage(decay = 0.5)
 
@@ -146,12 +155,21 @@ class ResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            c_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.conv2d(x, num_out, [1,1], 2, activation_fn=None, 
                     weights_initializer=c_init, weights_regularizer=regularizer,
                     biases_initializer=b_init)
+
+    '''
+    def shortcut2(self, x, num_out, scope):
+        input_c = x.shape[3]
+        pool = tf.nn.avg_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID')
+        return tf.pad(pool, [[0,0], [0,0], [0,0], [input_c//2, input_c//2]])
+    '''
+
 
     def res_block(self, x, num_out, scope):
         with tf.variable_scope(scope, reuse = tf.AUTO_REUSE):
@@ -159,7 +177,7 @@ class ResNet(object):
             if int(x.shape[3]) != num_out:
                 shortcut = self.shortcut(x, num_out, scope+'-sc')
 
-            x = self.conv_bn_relu(x, num_out, scope + '-1')
-            x = self.conv_bn_relu(x, num_out, scope + '-2')
+            x_1 = self.conv_bn_relu(x, num_out, scope + '-1')
+            x_2 = self.conv_bn_relu(x_1, num_out, scope + '-2')
 
-            return tf.add(x, shortcut)
+            return tf.add(x_2, shortcut)

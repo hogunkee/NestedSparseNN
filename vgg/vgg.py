@@ -35,24 +35,30 @@ class VGG(object):
             self.keep_prob = 1.0
 
 
-        self.X = X = tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)])
-        self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes])
+        self.X = X =  tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)], name = 'X_placeholder')
+        self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y_placeholder')
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
 
         ### pixel normalization ###
-        if self.dataset=='cifar10' and self.norm:
+        if self.dataset=='cifar10' and self.norm=='True':
+            print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
         else:
             x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
 
-        ### crop and padding ###
-        if self.padding and self.is_training:
-            x_flip = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+        ### flip, crop and padding ###
+        if self.is_training==True:
+            print('Training Model')
+            print('image randomly flip')
+            x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
+
+        if self.padding=='True' and self.is_training==True:
+            print('image crop and padding')
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x_flip, dtype = tf.float32)
+                x, dtype = tf.float32)
 
         #channel: 64
         h1 = self.conv(x, 64, 'layer-1')
@@ -130,15 +136,16 @@ class VGG(object):
         correct_predict = tf.equal(tf.argmax(y,1), tf.argmax(Y,1))
         self.accur = tf.reduce_mean(tf.cast(correct_predict, tf.float32))
         ## tensorboard summary ##
-        tf.summary.scalar('accuracy', self.accur)
-        self.merged = tf.summary.merge_all()
+        #tf.summary.scalar('loss', self.loss)
+        #tf.summary.scalar('accuracy', self.accur)
 
     ### convolution, maxpooling and fully-connected function ###
     def conv(self, x, num_out, scope):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #c_init = tf.truncated_normal_initializer(stddev=5e-2)
+            c_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.conv2d(x, num_out, [3,3], activation_fn=None, 
@@ -152,7 +159,8 @@ class VGG(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            #f_init = tf.truncated_normal_initializer(stddev=5e-2)
+            f_init = tf.contrib.layers.xavier_initializer()
             b_init = tf.constant_initializer(0.0)
             regularizer = tf.contrib.layers.l2_regularizer(scale=self.beta)
             return tf.contrib.layers.fully_connected(x, num_out, activation_fn=None,
@@ -162,9 +170,9 @@ class VGG(object):
     def batch_norm(self, x, num_out, scope):
         with tf.variable_scope(scope):
             beta = tf.Variable(tf.constant(0.0, shape=[num_out]),
-                    name='beta', trainable=True)
+                    name='beta', trainable=self.is_training)
             gamma = tf.Variable(tf.constant(1.0, shape=[num_out]),
-                    name='gamma', trainable=True)
+                    name='gamma', trainable=self.is_training)
             batch_mean, batch_var = tf.nn.moments(x, [0,1,2], name='moments')
             ema = tf.train.ExponentialMovingAverage(decay = 0.5)
 
@@ -184,9 +192,9 @@ class VGG(object):
     def batch_norm2(self, x, num_out, scope):
         with tf.variable_scope(scope):
             beta = tf.Variable(tf.constant(0.0, shape=[num_out]),
-                    name='beta', trainable=True)
+                    name='beta', trainable=self.is_training)
             gamma = tf.Variable(tf.constant(1.0, shape=[num_out]),
-                    name='gamma', trainable=True)
+                    name='gamma', trainable=self.is_training)
             batch_mean, batch_var = tf.nn.moments(x, [0,1], name='moments')
             ema = tf.train.ExponentialMovingAverage(decay = 0.5)
 
