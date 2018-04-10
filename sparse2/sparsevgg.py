@@ -1,30 +1,26 @@
 import tensorflow as tf
 
 ### RGB mean value ###
-mean_R, mean_G, mean_B = 125.3, 122.9, 113.9
-std = 64.15
+mean_R, mean_G, mean_B = 124.2, 123.4, 123.7
+std = 69.68
 mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [mean_B for i in range(32*32)]
 
 ### VGGNet model ###
 class SparseVGG(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
+        self.num_classes2 = config.num_classes2
+
         self.dataset = config.dataset
         self.keep_prob = 1 - config.dropout
         self.lr = config.learning_rate
+        self.lr2 = config.learning_rate2
         self.beta = config.beta
         self.padding = config.padding
         self.norm = config.norm
 
-        if self.dataset=='mnist':
-            self.image_size = 28
-            self.input_channel = 1
-        elif self.dataset=='cifar10' or self.dataset=='cifar100':
-            self.image_size = 32
-            self.input_channel = 3
-        else:
-            self.image_size = 224 
-            self.input_channel = 3
+        self.image_size = 32
+        self.input_channel = 3
 
         self.batch_size = config.batch_size
         self.num_epoch = config.num_epoch
@@ -37,12 +33,14 @@ class SparseVGG(object):
 
 
         self.X = X =  tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)], name = 'X_placeholder')
-        self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y_placeholder')
+        self.Y1 = Y1 = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y_placeholder')
+        self.Y2 = Y2 = tf.placeholder(tf.float32, shape = [None, self.num_classes2], name = 'Y_placeholder')
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
+        self.learning_rate2 = tf.placeholder(tf.float32, [], name = 'learning_rate2')
 
         ### pixel normalization ###
-        if self.dataset=='cifar10' and self.norm=='True':
+        if self.dataset=='cifar100' and self.norm=='True':
             print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
@@ -220,6 +218,11 @@ class SparseVGG(object):
         if self.fc==1:
             h1lv1 = self.lv1fc(h1lv1, 384, 'fc1-lv1')
             h2lv1, h2lv2 = self.lv2fc(h2lv1, h2lv2, 384, 128, 'fc1-lv2')
+            #dropout
+            h1lv1 = tf.nn.dropout(h1lv1, self.keep_prob)
+            h2lv1 = tf.nn.dropout(h2lv1, self.keep_prob)
+            h2lv2 = tf.nn.dropout(h2lv2, self.keep_prob)
+
             h2lv1 = tf.add(h1lv1, h2lv1)
             h1lv1 = tf.nn.relu(h1lv1)
             h2lv1 = tf.nn.relu(h2lv1)
@@ -227,6 +230,11 @@ class SparseVGG(object):
 
             h1lv1 = self.lv1fc(h1lv1, 384, 'fc2-lv1')
             h2lv1, h2lv2 = self.lv2fc(h2lv1, h2lv2, 384, 128, 'fc2-lv2')
+            #dropout
+            h1lv1 = tf.nn.dropout(h1lv1, self.keep_prob)
+            h2lv1 = tf.nn.dropout(h2lv1, self.keep_prob)
+            h2lv2 = tf.nn.dropout(h2lv2, self.keep_prob)
+
             h2lv1 = tf.add(h1lv1, h2lv1)
             h1lv1 = tf.nn.relu(h1lv1)
             h2lv1 = tf.nn.relu(h2lv1)
@@ -234,8 +242,8 @@ class SparseVGG(object):
 
             lv1 = h1lv1
             lv2 = tf.concat((h2lv1, h2lv2), 1)
-            lv1 = self.lv1fc(lv1, 10, 'fc3-lv1')
-            lv2 = self.lv1fc(lv2, 10, 'fc3-lv2')
+            lv1 = self.lv1fc(lv1, self.num_classes, 'fc3-lv1')
+            lv2 = self.lv1fc(lv2, self.num_classes2, 'fc3-lv2')
 
         #seperated fc
         elif self.fc==2:
@@ -244,26 +252,34 @@ class SparseVGG(object):
 
             lv1 = self.lv1fc(lv1, 384, 'fc1-lv1')
             lv2 = self.lv1fc(lv2, 512, 'fc1-lv2')
+            #dropout
+            lv1 = tf.nn.dropout(lv1, self.keep_prob)
+            lv2 = tf.nn.dropout(lv2, self.keep_prob)
+
             lv1 = tf.nn.relu(lv1)
             lv2 = tf.nn.relu(lv2)
 
             lv1 = self.lv1fc(lv1, 384, 'fc2-lv1')
             lv2 = self.lv1fc(lv2, 512, 'fc2-lv2')
+            #dropout
+            lv1 = tf.nn.dropout(lv1, self.keep_prob)
+            lv2 = tf.nn.dropout(lv2, self.keep_prob)
+
             lv1 = tf.nn.relu(lv1)
             lv2 = tf.nn.relu(lv2)
 
-            lv1 = self.lv1fc(lv1, 10, 'fc3-lv1')
-            lv2 = self.lv1fc(lv2, 10, 'fc3-lv2')
+            lv1 = self.lv1fc(lv1, self.num_classes, 'fc3-lv1')
+            lv2 = self.lv1fc(lv2, self.num_classes2, 'fc3-lv2')
 
         o1 = tf.nn.softmax(lv1)
         o2 = tf.nn.softmax(lv2)
 
-        self.loss1 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=lv1))
-        self.loss2 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=lv2))
+        self.loss1 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y1,logits=lv1))
+        self.loss2 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y2,logits=lv2))
         self.loss_t = self.loss1 + self.loss2
 
-        correct_predict1 = tf.equal(tf.argmax(lv1,1), tf.argmax(Y,1))
-        correct_predict2 = tf.equal(tf.argmax(lv2,1), tf.argmax(Y,1))
+        correct_predict1 = tf.equal(tf.argmax(lv1,1), tf.argmax(Y1,1))
+        correct_predict2 = tf.equal(tf.argmax(lv2,1), tf.argmax(Y2,1))
         self.accur1 = tf.reduce_mean(tf.cast(correct_predict1, tf.float32))
         self.accur2 = tf.reduce_mean(tf.cast(correct_predict2, tf.float32))
 
@@ -289,7 +305,7 @@ class SparseVGG(object):
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             self.train_step1 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss1,
                     var_list=self.l1_vars)
-            self.train_step2 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss2,
+            self.train_step2 = tf.train.AdamOptimizer(self.learning_rate2).minimize(self.loss2,
                     var_list=self.l2_vars)
             self.train_step_t = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_t,
                     var_list=t_vars)

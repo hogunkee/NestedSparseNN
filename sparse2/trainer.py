@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def run_epoch(session, model, data, train_mode, printOn = False):
+def run_epoch(session, model, data, data2, train_mode, printOn = False):
     sum_loss1 = 0
     sum_regul_loss1 = 0
     sum_accur1 = 0
@@ -9,6 +9,8 @@ def run_epoch(session, model, data, train_mode, printOn = False):
     sum_accur2 = 0
 
     num_steps = len(data[0]) // model.batch_size
+    num_steps2 = len(data2[0]) // model.batch_size
+
     fetches1 = {
             'loss' : model.loss1,
             'accur' : model.accur1,
@@ -23,17 +25,19 @@ def run_epoch(session, model, data, train_mode, printOn = False):
         fetches1['train_step'] = model.train_step1
         fetches2['train_step'] = model.train_step2
 
+    # batch 돌아가며 train
     if train_mode == 1:
+        num_steps2 = num_steps
         for iter in range(num_steps):
             vals1 = session.run(fetches1, feed_dict = {
                 model.learning_rate: model.lr, 
                 model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.Y1: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
             vals2 = session.run(fetches2, feed_dict = {
-                model.learning_rate: model.lr, 
-                model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.learning_rate2: model.lr2, 
+                model.X: data2[0][iter*model.batch_size : (iter+1)*model.batch_size], 
+                model.Y2: data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
 
             loss1 = vals1['loss']
@@ -58,12 +62,13 @@ def run_epoch(session, model, data, train_mode, printOn = False):
                 print("lv2 - loss: %.3f, regul loss: %.3f, accur: %.3f" %
                         (loss2, regul_loss2, accur2))
 
+    # epoch씩 train
     elif train_mode == 2:
         for iter in range(num_steps):
             vals1 = session.run(fetches1, feed_dict = {
                 model.learning_rate: model.lr, 
                 model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.Y1: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
 
             loss1 = vals1['loss']
@@ -78,11 +83,11 @@ def run_epoch(session, model, data, train_mode, printOn = False):
                 print("%d/%d steps.\nlv1 - loss: %.3f, regul loss: %.3f, accur: %.3f" %
                         (iter+1, num_steps, loss1, regul_loss1, accur1))
                 
-        for iter in range(num_steps):
+        for iter in range(num_steps2):
             vals2 = session.run(fetches2, feed_dict = {
-                model.learning_rate: model.lr, 
-                model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.learning_rate2: model.lr2, 
+                model.X: data2[0][iter*model.batch_size : (iter+1)*model.batch_size], 
+                model.Y2: data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
 
             loss2 = vals2['loss']
@@ -94,24 +99,27 @@ def run_epoch(session, model, data, train_mode, printOn = False):
             sum_accur2 += accur2
             
             if printOn==True and model.is_training==True and (iter+1)%model.print_step==0:
-                print("lv2 - loss: %.3f, regul loss: %.3f, accur: %.3f" %
-                        (loss2, regul_loss2, accur2))
+                print("%d/%d steps.\nlv2 - loss: %.3f, regul loss: %.3f, accur: %.3f" %
+                        (iter+1, num_steps2, loss2, regul_loss2, accur2))
 
+    # loss_t = loss1 + loss2
     elif train_mode == 3:
+        num_steps2 = num_step
         for iter in range(num_steps):
             vals1 = session.run(fetches1, feed_dict = {
                 model.learning_rate: model.lr, 
                 model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.Y1: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
             vals2 = session.run(fetches2, feed_dict = {
-                model.learning_rate: model.lr, 
-                model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+                model.learning_rate2: model.lr2, 
+                model.X: data2[0][iter*model.batch_size : (iter+1)*model.batch_size], 
+                model.Y2: data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
                 })
             if model.is_training:
                 loss_t, _ = session.run([model.loss_t, model.train_step_t], feed_dict = {
                     model.learning_rate: model.lr, 
+                    model.learning_rate2: model.lr2, 
                     model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
                     model.Y: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
                     })
@@ -126,4 +134,4 @@ def run_epoch(session, model, data, train_mode, printOn = False):
                 print("%d/%d steps.\nloss: %.3f, lv1-accur: %.3f, lv2-accur: %.3f" %
                         (iter+1, num_steps, loss_t, accur1, accur2))
 
-    return (sum_accur1/num_steps), (sum_accur2/num_steps)
+    return (sum_accur1/num_steps), (sum_accur2/num_steps2)

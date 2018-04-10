@@ -1,6 +1,7 @@
 from config import get_config
 from data_loader import * 
-from sparsevgg import *
+from vgg import *
+from vgg2 import *
 from trainer import run_epoch
 
 def main(config):
@@ -29,12 +30,21 @@ def main(config):
     pfile.close()
 
     with tf.Graph().as_default():
-        Model = SparseVGG
+        if config.version == 1:
+            Model = VGG
+        else:
+            Model = VGG2
         trainModel = Model(config, is_training = True)
         testModel = Model(config, is_training = False)
 
 
         with tf.Session(config=tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))) as sess:
+            '''
+            ## summary writer ##
+            train_writer = tf.summary.FileWriter(config.outf + '/train', sess.graph)
+            test_writer = tf.summary.FileWriter(config.outf + '/test')
+            '''
+
             init = tf.global_variables_initializer()
             #print(init.node_def)
             sess.run(init)
@@ -45,25 +55,29 @@ def main(config):
             num_change = 0
             count_epoch = 0
             for i in range(config.num_epoch):
-                train_accur1, train_accur2 = run_epoch(sess, trainModel, Input_train, config.train_mode, printOn = True)
-                val_accur1, val_accur2 = run_epoch(sess, testModel, Input_val, config.train_mode)
+                train_accur = run_epoch(sess, trainModel, Input_train, printOn = True)
+                val_accur = run_epoch(sess, testModel, Input_val)
 
-                print("\nEpoch: %d/%d" %(i+1, config.num_epoch))
-                print("lv1")
-                print("train accur: %.3f\tval accur: %.3f" %(train_accur1, val_accur1))
-                print("lv2")
-                print("train accur: %.3f\tval accur: %.3f" %(train_accur2, val_accur2))
+                ## write summary ##
+                #train_writer.add_summary(summary, i)
+
+                print("Epoch: %d/%d" %(i+1, config.num_epoch))
+                print("train accur: %.3f" %train_accur)
+                print("val accur: %.3f" %val_accur)
                 pfile = open(savepath, 'a+')
                 pfile.write("\nEpoch: %d/%d\n" %(i+1, config.num_epoch))
-                pfile.write("lv1 - train: %.3f\tval: %.3f\n" %(train_accur1, val_accur1))
-                pfile.write("lv2 - train: %.3f\tval: %.3f\n" %(train_accur2, val_accur2))
+                pfile.write("train accur: %.3f\n" %train_accur)
+                pfile.write("val accur: %.3f\n" %val_accur)
                 pfile.close()
 
-                '''
                 ### if validation accuracy decreased, decrease learning rate ###
                 count_epoch += 1
                 if (val_accur < pre_val):
                     count += 1
+                '''
+                else:
+                    count = 0
+                '''
                 if count == 3 and num_change < 4 and count_epoch > 10:
                     trainModel.lr /= 10
                     print('change learning rate %g:' %(trainModel.lr))
@@ -74,16 +88,21 @@ def main(config):
                     count = 0
                     count_epoch = 0
                 pre_val = val_accur 
-                '''
 
-                test_accur1, test_accur2 = run_epoch(sess, testModel, Input_test, config.train_mode)
+                test_accur = run_epoch(sess, testModel, Input_test)
 
-                print("lv1 - test accur: %.3f" %test_accur1)
-                print("lv2 - test accur: %.3f\n" %test_accur2)
+                ## write summary ##
+                #test_writer.add_summary(summary, i)
+
+                print("test accur: %.3f" %test_accur)
                 pfile = open(savepath, 'a+')
-                pfile.write("lv1 - test accur: %.3f\n" %test_accur1)
-                pfile.write("lv2 - test accur: %.3f\n" %test_accur2)
+                pfile.write("\ntest accur: %.3f\n" %test_accur)
                 pfile.close()
+            '''
+            ## close summary writers ##
+            train_writer.close()
+            test_writer.close()
+            '''
 
 if __name__ == "__main__":
 	config = get_config()
