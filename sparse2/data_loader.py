@@ -85,6 +85,6 @@ class Dataset():
             if data_list[i][1] >= self.num_labels:
                 end = i
                 break
-        out = data_list[:i]
+        out = data_list[:end]
         random.shuffle(out)
         return out
