@@ -8,7 +8,13 @@ def main(config):
         config.outf = 'sample'
     os.system('mkdir {0}'.format(config.outf))
 
-    DataLoader = Dataset(config.dataset, config.datapath, config.num_classes)
+    CIFAR10_PATH = '../data/cifar-10'
+    CIFAR100_PATH = '../data/cifar-100'
+    if config.dataset=='cifar10':
+        DataLoader = Dataset(config.dataset, CIFAR10_PATH, config.num_classes)
+    elif config.dataset=='cifar100':
+        DataLoader = Dataset(config.dataset, CIFAR100_PATH, config.num_classes)
+
     Input_train, Input_test = DataLoader(config.validation)
 
     ### writing results ###

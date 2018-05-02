@@ -44,14 +44,16 @@ class ResNet(object):
 
         x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
+        '''
         if self.dataset=='cifar10' and self.norm=='True':
             print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
             noise_tensor = tf.reshape(noise, [-1, self.image_size, self.image_size, self.input_channel])
             x = (x - noise_tensor)/std
+        '''
 
-        print('Image stadardization')
-        x = tf.map_fn(lambda k: tf.image.per_image_standardization(k), x, dtype=tf.float32)
+        #print('Image stadardization')
+        #x = tf.map_fn(lambda k: tf.image.per_image_standardization(k), x, dtype=tf.float32)
 
         ### flip, crop and padding ###
         if self.is_training==True:

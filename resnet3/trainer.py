@@ -27,7 +27,7 @@ def run_epoch(session, model, data, printOn = False):
 
         vals = session.run(fetches, feed_dict = {
             model.learning_rate: model.lr, 
-            model.X: x_, model.Y: y_})
+            model.X: x_norm, model.Y: y_})
         '''
         vals = session.run(fetches, feed_dict = {
             model.learning_rate: model.lr, 
