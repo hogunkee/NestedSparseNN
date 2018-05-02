@@ -1,5 +1,11 @@
 import tensorflow as tf
 
+def normalizer(X):
+    mean = np.mean(X, axis=(0,1))
+    std = np.std(X, axis=(0,1))
+    normed_X = (X-mean)/(std+1e-7)
+    return normed_X
+
 def run_epoch(session, model, data, data2, train_mode, printOn = False):
     sum_loss1 = 0
     sum_regul_loss1 = 0
@@ -29,16 +35,19 @@ def run_epoch(session, model, data, data2, train_mode, printOn = False):
     if train_mode == 1:
         num_steps2 = num_steps
         for iter in range(num_steps):
+            x1 = data[0][iter*model.batch_size : (iter+1)*model.batch_size]
+            y1 = data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+            x2 = data2[0][iter*model.batch_size : (iter+1)*model.batch_size]
+            y2 = data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
+            x1 = normalizer(x1)
+            x2 = normalizer(x2)
+
             vals1 = session.run(fetches1, feed_dict = {
                 model.learning_rate: model.lr, 
-                model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y1: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
-                })
+                model.X: x1, model.Y1: y1})
             vals2 = session.run(fetches2, feed_dict = {
                 model.learning_rate2: model.lr2, 
-                model.X: data2[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y2: data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
-                })
+                model.X: x2, model.Y2: y2})
 
             loss1 = vals1['loss']
             regul_loss1 = vals1['regul_loss']
@@ -65,11 +74,13 @@ def run_epoch(session, model, data, data2, train_mode, printOn = False):
     # epoch씩 train
     elif train_mode == 2:
         for iter in range(num_steps):
+            x1 = data[0][iter*model.batch_size : (iter+1)*model.batch_size]
+            y1 = data[1][iter*model.batch_size : (iter+1)*model.batch_size]
+            x1 = normalizer(x1)
+
             vals1 = session.run(fetches1, feed_dict = {
                 model.learning_rate: model.lr, 
-                model.X: data[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y1: data[1][iter*model.batch_size : (iter+1)*model.batch_size]
-                })
+                model.X: x1, model.Y1: y1})
 
             loss1 = vals1['loss']
             regul_loss1 = vals1['regul_loss']
@@ -84,11 +95,13 @@ def run_epoch(session, model, data, data2, train_mode, printOn = False):
                         (iter+1, num_steps, loss1, regul_loss1, accur1))
                 
         for iter in range(num_steps2):
+            x2 = data2[0][iter*model.batch_size : (iter+1)*model.batch_size]
+            y2 = data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
+            x2 = normalizer(x2)
+
             vals2 = session.run(fetches2, feed_dict = {
                 model.learning_rate2: model.lr2, 
-                model.X: data2[0][iter*model.batch_size : (iter+1)*model.batch_size], 
-                model.Y2: data2[1][iter*model.batch_size : (iter+1)*model.batch_size]
-                })
+                model.X : x2, model.Y2: y2})
 
             loss2 = vals2['loss']
             regul_loss2 = vals2['regul_loss']

@@ -40,8 +40,10 @@ class SparseResNet(object):
 
         x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
+        '''
         print('Image standardization')
         x = tf.map_fn(lambda k: tf.image.per_image_standardization(k), x, dtype=tf.float32)
+        '''
 
         ### flip, crop and padding ###
         if self.is_training==True:
