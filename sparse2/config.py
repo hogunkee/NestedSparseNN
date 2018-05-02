@@ -14,7 +14,7 @@ parser.add_argument('--num_classes2', type = int, default  = 10, help = 'number 
 parser.add_argument('--learning_rate', type = float, default = 0.1, help = 'learning rate')
 parser.add_argument('--learning_rate2', type = float, default = 0.1, help = 'learning rate')
 parser.add_argument('--validation', type = float, default = 0.0, help = 'rate of validation split')
-parser.add_argument('--num_layers', type = int, default = 5, help = 'number of blocks in each level')
+parser.add_argument('--num_layers', type = int, default = 9, help = 'number of blocks in each level')
 parser.add_argument('--padding', default = 'True', help = 'crop and padding')
 parser.add_argument('--norm', default = 'True', help = 'image pixel normalize')
 parser.add_argument('--beta', type = float, default = 5e-3, help = 'regularization rate')
@@ -24,7 +24,7 @@ parser.add_argument('--train_mode', type = int, default  = 2, help = 'train mode
 
 parser.add_argument('--outf', default = None, help = 'directory to save result')
 parser.add_argument('--savename', required = True, help = 'save result')
-parser.add_argument('--print_step', type = int, default = 20, help = 'print out training steps')
+parser.add_argument('--print_step', type = int, default = 25, help = 'print out training steps')
 
 def get_config():
     return parser.parse_args()

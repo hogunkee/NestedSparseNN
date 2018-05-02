@@ -132,7 +132,7 @@ def main(config):
                     max1 = test_accur1
                 if (test_accur2 > max2):
                     max2 = test_accur2
-                print("max: %.3f / %.3f"\n %(max1, max2))
+                print("max: %.3f / %.3f\n" %(max1, max2))
 
 if __name__ == "__main__":
 	config = get_config()

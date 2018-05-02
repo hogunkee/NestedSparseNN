@@ -138,10 +138,8 @@ class SparseResNet(object):
             optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.9, name='1', use_nesterov=True)
             optimizer2 = tf.train.MomentumOptimizer(self.learning_rate2, 0.9, name='2', use_nesterov=True)
             optimizer_t = tf.train.MomentumOptimizer(self.learning_rate, 0.9, name='t', use_nesterov=True)
-            self.train_step1 = optimizer.minimize(self.loss1)
-            self.train_step2 = optimizer2.minimize(self.loss2)
-            #self.train_step1 = optimizer.minimize(self.loss1, var_list=self.l1_vars)
-            #self.train_step2 = optimizer2.minimize(self.loss2, var_list=self.l2_vars)
+            self.train_step1 = optimizer.minimize(self.loss1, var_list=self.l1_vars)
+            self.train_step2 = optimizer2.minimize(self.loss2, var_list=self.l2_vars)
             self.train_step_t = optimizer_t.minimize(self.loss_t, var_list=t_vars)
 
 
