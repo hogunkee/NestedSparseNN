@@ -32,8 +32,8 @@ class SparseResNet(object):
 
 
         self.X = X =  tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)], name = 'X_placeholder')
-        self.Y1 = Y1 = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y_placeholder')
-        self.Y2 = Y2 = tf.placeholder(tf.float32, shape = [None, self.num_classes2], name = 'Y_placeholder')
+        self.Y1 = Y1 = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y1_placeholder')
+        self.Y2 = Y2 = tf.placeholder(tf.float32, shape = [None, self.num_classes2], name = 'Y2_placeholder')
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
         self.learning_rate2 = tf.placeholder(tf.float32, [], name = 'learning_rate2')
@@ -70,16 +70,16 @@ class SparseResNet(object):
         #first layer
         h1lv1, h2lv2 = self.first_layer(x)
 
-		# c 16
+        # c 16
         h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h1lv1, h2lv2, 16, 'b1-layer-'+str(0), True)
         for i in range(1,n):
             h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h2lv1, h2lv2, 16, 'b1-layer-'+str(i))
 
-		# c 32
+        # c 32
         for i in range(n):
             h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h2lv1, h2lv2, 32, 'b2-layer-'+str(i))
 
-		# c 64
+        # c 64
         for i in range(n):
             h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h2lv1, h2lv2, 64, 'b3-layer-'+str(i))
 
