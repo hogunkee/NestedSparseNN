@@ -17,8 +17,6 @@ class ResNet(object):
         self.dataset = config.dataset
         self.lr = config.learning_rate
         self.beta = config.beta
-        self.padding = config.padding
-        self.norm = config.norm
 
         if self.dataset=='mnist':
             self.image_size = 28
@@ -61,19 +59,19 @@ class ResNet(object):
             print('image randomly flip')
             x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
 
+            print('image crop and padding')
+            x = tf.map_fn(lambda k: tf.random_crop(
+                tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
+                x, dtype = tf.float32)
+        '''
         def crop_pad(image):
             image = tf.image.resize_image_with_crop_or_pad(image, self.image_size+4, self.image_size+4)
             image = tf.random_crop(image, [self.image_size, self.image_size, 3])
             return image
 
-        if self.padding=='True' and self.is_training==True:
-            print('image crop and padding')
+        if and self.is_training==True:
             x = tf.map_fn(lambda k: crop_pad(k), x, dtype=tf.float32)
-            '''
-            x = tf.map_fn(lambda k: tf.random_crop(
-                tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x, dtype = tf.float32)
-            '''
+        '''
         
         h = self.conv(x, 16, 1, 'first')
         #h = self.conv_bn_relu(x, 16, 'first')

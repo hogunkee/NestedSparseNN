@@ -19,14 +19,12 @@ def main(config):
         Input_train2, Input_val2, Input_test2 = DataLoader2(config.validation)
 
     ### writing results ###
-    filename = config.savename+'_ver:'+str(config.version)+'_pad:'+str(config.padding)+'_norm:'+str(config.norm)
+    filename = config.savename+'_ver:'+str(config.version)
     savepath = os.path.join(config.outf, filename)
     pfile = open(savepath, 'w+')
     pfile.write('version: '+str(config.version)+'\n')
     pfile.write('dataset: '+str(config.dataset)+'\n')
     #pfile.write('image size: '+str(config.image_size)+'\n')
-    pfile.write('padding: '+str(config.padding)+'\n')
-    pfile.write('pixel norm: '+str(config.norm)+'\n\n')
     pfile.write('num epoch: '+str(config.num_epoch)+'\n')
     pfile.write('batch size: '+str(config.batch_size)+'\n')
     pfile.write('initial learning rate: '+str(config.learning_rate)+'\n')

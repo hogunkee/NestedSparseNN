@@ -22,8 +22,6 @@ def main(config):
     savepath = os.path.join(config.outf, filename)
     pfile = open(savepath, 'w+')
     pfile.write('dataset: '+str(config.dataset)+'\n')
-    pfile.write('padding: '+str(config.padding)+'\n')
-    pfile.write('pixel norm: '+str(config.norm)+'\n\n')
     pfile.write('num epoch: '+str(config.num_epoch)+'\n')
     pfile.write('batch size: '+str(config.batch_size)+'\n')
     pfile.write('initial learning rate: '+str(config.learning_rate)+'\n')

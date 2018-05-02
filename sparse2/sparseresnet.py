@@ -18,8 +18,6 @@ class SparseResNet(object):
         self.lr = config.learning_rate
         self.lr2 = config.learning_rate2
         self.beta = config.beta
-        self.padding = config.padding
-        self.norm = config.norm
 
         self.image_size = 32
         self.input_channel = 3
@@ -51,6 +49,12 @@ class SparseResNet(object):
             print('image randomly flip')
             x = tf.map_fn(lambda k: tf.image.random_flip_left_right(k), x, dtype = tf.float32)
 
+            print('image crop and padding')
+            x = tf.map_fn(lambda k: tf.random_crop(
+                tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
+                x, dtype = tf.float32)
+
+        '''
         def crop_pad(image):
             image = tf.image.resize_image_with_crop_or_pad(image, self.image_size+4, self.image_size+4)
             image = tf.random_crop(image, [self.image_size, self.image_size, 3])
@@ -59,12 +63,6 @@ class SparseResNet(object):
         if self.is_training==True:
             print('image crop and padding')
             x = tf.map_fn(lambda k: crop_pad(k), x, dtype=tf.float32)
-        '''
-        if self.padding=='True' and self.is_training==True:
-            print('image crop and padding')
-            x = tf.map_fn(lambda k: tf.random_crop(
-                tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
-                x, dtype = tf.float32)
         '''
 
         #first layer
