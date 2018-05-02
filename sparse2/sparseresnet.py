@@ -73,7 +73,7 @@ class SparseResNet(object):
 		# c 16
         h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h1lv1, h2lv2, 16, 'b1-layer-'+str(0), True)
         for i in range(1,n):
-            h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h2lv1, h2lv2, 16, 'b1-layer-'+str(i), True)
+            h1lv1, h2lv1, h2lv2 = self.res_block(h1lv1, h2lv1, h2lv2, 16, 'b1-layer-'+str(i))
 
 		# c 32
         for i in range(n):
