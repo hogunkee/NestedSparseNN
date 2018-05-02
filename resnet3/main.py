@@ -18,7 +18,7 @@ def main(config):
     Input_train, Input_test = DataLoader(config.validation)
 
     ### writing results ###
-    filename = config.savename+'_pad:'+str(config.padding)+'_norm:'+str(config.norm)
+    filename = config.savename #+'_pad:'+str(config.padding)+'_norm:'+str(config.norm)
     savepath = os.path.join(config.outf, filename)
     pfile = open(savepath, 'w+')
     pfile.write('dataset: '+str(config.dataset)+'\n')

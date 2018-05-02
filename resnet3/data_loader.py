@@ -73,7 +73,6 @@ class Dataset():
         labels_train = list(train_labels)
         data_test = list(test_data)
         labels_test = list(test_labels)
-        print(labels_test[:10])
 
         if self.dataset != 'mnist':
             one_hot(labels_train, self.num_labels)

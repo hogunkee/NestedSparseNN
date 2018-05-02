@@ -78,7 +78,7 @@ class ResNet(object):
         h = self.conv(x, 16, 1, 'first')
         #h = self.conv_bn_relu(x, 16, 'first')
 
-        h = self.res_block(h, 16, 'layer1-'+str(i), True)
+        h = self.res_block(h, 16, 'layer1-'+str(0), True)
         for i in range(1, n):
             h = self.res_block(h, 16, 'layer1-'+str(i))
 
