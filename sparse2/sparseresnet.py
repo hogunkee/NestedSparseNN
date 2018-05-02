@@ -152,12 +152,12 @@ class SparseResNet(object):
             #c_init = tf.contrib.layers.xavier_initializer()
             n = np.sqrt(6/(3*3*3*16))
             c_init = tf.random_uniform_initializer(-n, n)
-            b_init = tf.constant_initializer(0.0)
+            #b_init = tf.constant_initializer(0.0)
 
             out1 = tf.contrib.layers.conv2d(x, 12, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init)
+                    weights_initializer=c_init, biases_initializer=None)
             out2 = tf.contrib.layers.conv2d(x, 4, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init)
+                    weights_initializer=c_init, biases_initializer=None)
         return out1, out2
 
     def res_block(self, x11, x21, x22, out, scope, activate_before_residual=False):
@@ -219,10 +219,10 @@ class SparseResNet(object):
             c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
-            b_init = tf.constant_initializer(0.0)
+            #b_init = tf.constant_initializer(0.0)
 
             out = tf.contrib.layers.conv2d(x, dim, [3,3], stride, activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init)
+                    weights_initializer=c_init, biases_initializer=None)
         return out
 
     def lv2conv(self, x1, x2, dim1, dim2, stride, scope):
@@ -233,14 +233,14 @@ class SparseResNet(object):
             c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
-            b_init = tf.constant_initializer(0.0)
+            #b_init = tf.constant_initializer(0.0)
 
             concat_x = tf.concat((x1, x2), 3)
 
             out1 = tf.contrib.layers.conv2d(x2, dim1, [3,3], stride, activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init, scope='l1')
+                    weights_initializer=c_init, biases_initializer=None, scope='l1')
             out2 = tf.contrib.layers.conv2d(concat_x, dim2, [3,3], stride, activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init, scope='l2')
+                    weights_initializer=c_init, biases_initializer=None, scope='l2')
         return out1, out2
 
     def fc(self, x, dim, scope):
