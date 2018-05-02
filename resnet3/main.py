@@ -68,13 +68,14 @@ def main(config):
                 pfile.close()
 
                 test_accur = run_epoch(sess, testModel, Input_test)
+
+                if test_accur > max_accur:
+                    max_accur = test_accur
+
                 print("test accur: %.3f\t max accur: %.3f" %(test_accur,max_accur))
                 pfile = open(savepath, 'a+')
                 pfile.write("test accur: %.3f\t max accur: %.3f\n" %(test_accur,max_accur))
                 pfile.close()
-
-                if test_accur > max_accur:
-                    max_accur = test_accur
 
                 ### if validation accuracy decreased, decrease learning rate ###
                 if (i>=100 and i<150):

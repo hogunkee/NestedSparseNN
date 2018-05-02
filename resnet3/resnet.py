@@ -98,9 +98,9 @@ class ResNet(object):
 
         #reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         t_vars = tf.trainable_variables()
-        self.regularizer = self.beta * self.l2loss(t_vars)
+        self.regularizer = self.l2loss(t_vars)
 
-        self.loss += self.regularizer
+        self.loss += self.beta * self.regularizer
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             #optimizer = tf.train.AdamOptimizer(self.learning_rate)

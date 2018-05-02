@@ -122,12 +122,12 @@ class SparseResNet(object):
             #pprint(self.l1_vars)
             #pprint(self.l2_vars)
 
-        self.regularizer1 = self.beta * self.l2loss(self.l1_vars)
-        self.regularizer2 = self.beta * self.l2loss(self.l2_vars)
+        self.regularizer1 = self.l2loss(self.l1_vars)
+        self.regularizer2 = self.l2loss(self.l2_vars)
 
-        self.loss1 += self.regularizer1
-        self.loss2 += self.regularizer2
-        self.loss_t += self.regularizer2
+        self.loss1 += self.beta * self.regularizer1
+        self.loss2 += self.beta * self.regularizer2
+        self.loss_t += self.beta * self.regularizer2
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
             '''
