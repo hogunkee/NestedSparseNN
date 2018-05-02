@@ -3,7 +3,9 @@ import tensorflow as tf
 ### RGB mean value ###
 mean_R, mean_G, mean_B = 124.2, 123.4, 123.7
 std = 69.68
-mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [mean_B for i in range(32*32)]
+rgb = 123.767
+mean_RGB = [[rgb, rgb, rgb] for i in range(32*32)]
+#mean_RGB = [mean_R for i in range(32*32)] + [mean_G for i in range(32*32)] + [mean_B for i in range(32*32)]
 
 ### VGGNet model ###
 class SparseVGG(object):
@@ -39,13 +41,13 @@ class SparseVGG(object):
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
         self.learning_rate2 = tf.placeholder(tf.float32, [], name = 'learning_rate2')
 
+        x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
         if self.dataset=='cifar100' and self.norm=='True':
             print('pixel normalization')
             noise = tf.constant([mean_RGB for i in range(self.batch_size)])
-            x = tf.reshape((X-noise)/std, [-1, self.image_size, self.image_size, self.input_channel])
-        else:
-            x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+            noise_tensor = tf.reshape(noise, [-1, self.image_size, self.image_size, self.input_channel])
+            x = (x - noise_tensor)/std
 
         ### flip, crop and padding ###
         if self.is_training==True:
@@ -60,21 +62,12 @@ class SparseVGG(object):
                 x, dtype = tf.float32)
 
         #input layer
+        #1st layer
         #channel: 48 & 16
         h1lv1, h2lv2 = self.first_layer(x)
         h1lv1 = tf.nn.relu(h1lv1)
         h2lv2 = tf.nn.relu(h2lv2)
 
-        #1st layer
-        #channel: 48 & 16
-        h1lv1 = self.lv1conv(h1lv1, 48, 'layer1-lv1')
-        h2lv1, h2lv2 = self.lv2conv(h1lv1, h2lv2, 48, 16, 'layer1-lv2')
-        h2lv1 = tf.add(h1lv1, h2lv1)
-        h1lv1 = tf.nn.relu(h1lv1)
-        h2lv1 = tf.nn.relu(h2lv1)
-        h2lv2 = tf.nn.relu(h2lv2)
-
-        '''
         #2nd layer
         #channel: 48 & 16
         h1lv1 = self.lv1conv(h1lv1, 48, 'layer2-lv1')
@@ -83,7 +76,6 @@ class SparseVGG(object):
         h1lv1 = tf.nn.relu(h1lv1)
         h2lv1 = tf.nn.relu(h2lv1)
         h2lv2 = tf.nn.relu(h2lv2)
-        '''
 
         #max pool
         h1lv1 = self.maxpool(h1lv1, 'max-1')
@@ -286,7 +278,8 @@ class SparseVGG(object):
         t_vars = tf.trainable_variables()
         self.l1_vars = [v for v in t_vars if 'lv1' in v.name] + [v for v in t_vars if 'input' in
                 v.name]
-        self.l2_vars = self.l1_vars + [v for v in t_vars if 'lv2' in v.name]
+        self.l2_vars = [v for v in t_vars if not ('lv1' in v.name or 'input' in v.name)]
+        #self.l2_vars = self.l1_vars + [v for v in t_vars if 'lv2' in v.name]
 
         # print vars
         from pprint import pprint
@@ -303,17 +296,22 @@ class SparseVGG(object):
         self.loss_t += self.beta * self.regularizer2
 
         with tf.variable_scope(tf.get_variable_scope(), reuse = tf.AUTO_REUSE):
-            self.train_step1 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss1,
-                    var_list=self.l1_vars)
-            self.train_step2 = tf.train.AdamOptimizer(self.learning_rate2).minimize(self.loss2,
-                    var_list=self.l2_vars)
-            self.train_step_t = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_t,
-                    var_list=t_vars)
+            '''
+            optimizer = tf.train.AdamOptimizer(self.learning_rate, name='1')
+            optimizer2 = tf.train.AdamOptimizer(self.learning_rate2, name='2')
+            optimizer_t = tf.train.AdamOptimizer(self.learning_rate, name='t')
+            '''
+            optimizer = tf.train.MomentumOptimizer(self.learning_rate, 0.99, name='1', use_nesterov=True)
+            optimizer2 = tf.train.MomentumOptimizer(self.learning_rate2, 0.99, name='2', use_nesterov=True)
+            optimizer_t = tf.train.MomentumOptimizer(self.learning_rate, 0.99, name='t', use_nesterov=True)
+            self.train_step1 = optimizer.minimize(self.loss1, var_list=self.l1_vars)
+            self.train_step2 = optimizer2.minimize(self.loss2, var_list=self.l2_vars)
+            self.train_step_t = optimizer_t.minimize(self.loss_t, var_list=t_vars)
 
 
     ### functions ###
     def first_layer(self, input):
-        with tf.variable_scope('input-layer'):
+        with tf.variable_scope('layer1'):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
@@ -349,9 +347,9 @@ class SparseVGG(object):
             concat_input = tf.concat((input1, input2), 3)
 
             out1 = tf.contrib.layers.conv2d(input2, dim1, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init, scope='lv1')
+                    weights_initializer=c_init, biases_initializer=b_init, scope='l1')
             out2 = tf.contrib.layers.conv2d(concat_input, dim2, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, biases_initializer=b_init, scope='lv2')
+                    weights_initializer=c_init, biases_initializer=b_init, scope='l2')
         return out1, out2
 
     def lv1fc(self, input, dim, scope):
