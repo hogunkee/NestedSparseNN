@@ -32,7 +32,10 @@ def main(config):
     pfile.write('initial learning rate: '+str(config.learning_rate)+'\n')
     pfile.write('validation split: '+str(config.validation)+'\n')
     pfile.write('regularization rate: '+str(config.beta)+'\n')
-    pfile.write('drop out: '+str(config.dropout)+'\n')
+    if config.version==1:
+        pfile.write('drop out: '+str(config.dropout)+'\n')
+    else:
+        pfile.write('n: '+str(config.num_layers)+'\n')
     pfile.close()
 
     with tf.Graph().as_default():
@@ -119,7 +122,7 @@ def main(config):
 
 
                 print("lv1 - test accur: %.3f" %test_accur1)
-                print("lv2 - test accur: %.3f\n" %test_accur2)
+                print("lv2 - test accur: %.3f" %test_accur2)
                 pfile = open(savepath, 'a+')
                 pfile.write("lv1 - test accur: %.3f\n" %test_accur1)
                 pfile.write("lv2 - test accur: %.3f\n" %test_accur2)
@@ -129,7 +132,7 @@ def main(config):
                     max1 = test_accur1
                 if (test_accur2 > max2):
                     max2 = test_accur2
-                print("max: %.3f / %.3f" %(max1, max2))
+                print("max: %.3f / %.3f"\n %(max1, max2))
 
 if __name__ == "__main__":
 	config = get_config()
