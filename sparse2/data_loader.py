@@ -41,10 +41,12 @@ class Dataset():
                 train_data = np.concatenate((train_data, _data))
 
         data = list(zip(train_data, train_labels))
-        data = self.slice(data)
+        train, test = self.slice(data)
 
+		'''
         train = list(data)[:int(-validation * len(data))]
         test = list(data)[int(-validation * len(data)):]
+		'''
 
         train_data, train_labels = zip(*train)
         test_data, test_labels = zip(*test)
@@ -62,6 +64,44 @@ class Dataset():
         return [data_train, labels_train], [data_test, labels_test]
 
 
+    def slice(self, data_list, validation):
+        data_list = sorted(data_list, key=lambda k: k[1])
+        
+        c = 0
+        c_start = 0
+        c_end = 0
+        tmp = [[] for i in range(self.num_labels)]
+
+        end = len(data_list)
+        for i in range(len(data_list)):
+            if data_list[i][1] > c:
+                c_end = i
+                tmp[c] = data_list[c_start:c_end]
+                c_start = c_end
+                c += 1
+
+            if data_list[i][1] >= self.num_labels:
+                end = i
+                break
+
+        if c_end != end:
+            print('c_end:',c_end,'end:',end)
+            tmp[c] = data_list[c_start:]
+            c += 1
+        assert c==self.num_labels
+
+        train, test = [], []
+        for i in range(len(tmp)):
+            random.shuffle(tmp[i])
+            train += (tmp[i][:int(-validation * len(tmp[i]))])
+            test += (tmp[i][int(-validation * len(tmp[i])):])
+
+        random.shuffle(train)
+        random.shuffle(test)
+
+        return train, test
+
+	'''
     def slice(self, data_list):
         data_list = sorted(data_list, key=lambda k: k[1])
         
@@ -72,3 +112,4 @@ class Dataset():
         out = data_list[:end]
         random.shuffle(out)
         return out
+	'''
