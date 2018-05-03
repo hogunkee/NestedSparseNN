@@ -50,18 +50,22 @@ class Dataset():
                 elif self.dataset == 'cifar100':
                     _label, _data = unpickle2(fpath)
                 print('load', fname)
-                if train_labels==[]:
-                    train_labels = _label
-                    train_data = _data
+                if fname == 'test_batch': 
+                    test_labels = _label
+                    test_data = _data
                 else:
-                    train_labels = train_labels + _label
-                    train_data = np.concatenate((train_data, _data))
+                    if train_labels==[]:
+                        train_labels = _label
+                        train_data = _data
+                    else:
+                        train_labels = train_labels + _label
+                        train_data = np.concatenate((train_data, _data))
 
-        data = list(zip(train_data, train_labels))
-        data = self.slice(data)
+        train = list(zip(train_data, train_labels))
+        test = list(zip(test_data, test_labels))
 
-        train = list(data)[:int(-validation * len(data))]
-        test = list(data)[int(-validation * len(data)):]
+        train = self.slice(train)
+        test = self.slice(test)
 
         train_data, train_labels = zip(*train)
         test_data, test_labels = zip(*test)

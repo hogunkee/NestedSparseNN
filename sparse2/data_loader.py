@@ -33,49 +33,33 @@ class Dataset():
             fpath = os.path.join(self.path, fname)
             _label, _data = unpickle(fpath)
             print('load', fname)
-            if fname == 'test_batch': 
-                test_labels = _label
-                test_data = _data
+            if train_labels==[]:
+                train_labels = _label
+                train_data = _data
             else:
-                if train_labels==[]:
-                    train_labels = _label
-                    train_data = _data
-                else:
-                    train_labels = train_labels + _label
-                    train_data = np.concatenate((train_data, _data))
+                train_labels = train_labels + _label
+                train_data = np.concatenate((train_data, _data))
 
-        train = list(zip(train_data, train_labels))
-        test = list(zip(test_data, test_labels))
+        data = list(zip(train_data, train_labels))
+        data = self.slice(data)
 
-        train = self.slice(train)
-        test = self.slice(test)
+        train = list(data)[:int(-validation * len(data))]
+        test = list(data)[int(-validation * len(data)):]
 
         train_data, train_labels = zip(*train)
         test_data, test_labels = zip(*test)
 
-        labels_val=[]
-        if validation==0:
-            data_train = list(train_data)
-            labels_train = list(train_labels)
-        else:
-            data_train = list(train_data)[:int(-validation * len(train_data))]
-            labels_train = list(train_labels)[:int(-validation * len(train_labels))]
-            data_val = list(train_data)[-int(validation * len(train_data)):]
-            labels_val = list(train_labels)[-int(validation * len(train_labels)):]
+        data_train = list(train_data)
+        labels_train = list(train_labels)
         data_test = list(test_data)
         labels_test = list(test_labels)
 
         one_hot(labels_train, self.num_labels)
-        one_hot(labels_val, self.num_labels)
         one_hot(labels_test, self.num_labels)
         print('train data length: %d' %(len(labels_train)))
-        print('validation data length: %d' %(len(labels_val)))
         print('test data length: %d' %(len(labels_test)))
         
-        if validation==0:
-            return [data_train, labels_train], [data_test, labels_test]
-        else:
-            return [data_train, labels_train], [data_val, labels_val], [data_test, labels_test]
+        return [data_train, labels_train], [data_test, labels_test]
 
 
     def slice(self, data_list):
