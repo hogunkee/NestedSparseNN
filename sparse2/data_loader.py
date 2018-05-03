@@ -41,12 +41,12 @@ class Dataset():
                 train_data = np.concatenate((train_data, _data))
 
         data = list(zip(train_data, train_labels))
-        train, test = self.slice(data)
+        train, test = self.slice(data, validation)
 
-		'''
+        '''
         train = list(data)[:int(-validation * len(data))]
         test = list(data)[int(-validation * len(data)):]
-		'''
+        '''
 
         train_data, train_labels = zip(*train)
         test_data, test_labels = zip(*test)
@@ -101,7 +101,7 @@ class Dataset():
 
         return train, test
 
-	'''
+    '''
     def slice(self, data_list):
         data_list = sorted(data_list, key=lambda k: k[1])
         
@@ -112,4 +112,4 @@ class Dataset():
         out = data_list[:end]
         random.shuffle(out)
         return out
-	'''
+    '''
