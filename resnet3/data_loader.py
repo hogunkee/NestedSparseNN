@@ -102,10 +102,12 @@ class Dataset():
 
         train, test = [], []
         for i in range(len(tmp)):
+            random.seed(i)
             random.shuffle(tmp[i])
             train += (tmp[i][:int(-validation * len(tmp[i]))])
             test += (tmp[i][int(-validation * len(tmp[i])):])
 
+        random.seed()
         random.shuffle(train)
         random.shuffle(test)
 
