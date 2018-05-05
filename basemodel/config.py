@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--dataset', default = 'cifar100', help = 'dataset')
 parser.add_argument('--datapath', default = '../data/cifar-100/', help = 'path to dataset')
-parser.add_argument('--num_epoch', type = int, default  = 300, help = 'number of epoch')
+parser.add_argument('--num_epoch', type = int, default  = 2000, help = 'number of epoch')
 
 parser.add_argument('--batch_size', type = int, default  = 100, help = 'batch size')
 parser.add_argument('--num_layers', type = int, default = 9, help = 'number of blocks in each level')

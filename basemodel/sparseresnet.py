@@ -19,7 +19,7 @@ class SparseResNet(object):
 
         self.image_size = 32
         self.input_channel = 3
-        n = self.n = config.num_layers
+        self.n = config.num_layers
 
         self.batch_size = config.batch_size
         self.num_epoch = config.num_epoch
@@ -59,15 +59,15 @@ class SparseResNet(object):
         # c 16 
         ## h_layers = [h1lv1, h2lv1, h2lv2, h3lv1, h3lv2, h3lv3] ##
         h_layers = self.res_block(first_layers, 16, 'b1-layer-'+str(0), True)
-        for i in range(1,n):
+        for i in range(1, self.n):
             h_layers = self.res_block(h_layers, 16, 'b1-layer-'+str(i))
 
         # c 32
-        for i in range(n):
+        for i in range(self.n):
             h_layers = self.res_block(h_layers, 32, 'b2-layer-'+str(i))
 
         # c 64
-        for i in range(n):
+        for i in range(self.n):
             h_layers = self.res_block(h_layers, 64, 'b3-layer-'+str(i))
 
         h1lv1 = h_layers[0]
@@ -137,8 +137,10 @@ class SparseResNet(object):
                 tf.get_variable_scope().reuse_variables()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
-            n = np.sqrt(6/(3*3*(3+16)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #n = np.sqrt(6/(3*3*(3+16)))
+            n = np.sqrt(2.0 / (3*3*16))
+            c_init = tf.random_normal_initializer(stddev = n)
+            #c_init = tf.random_uniform_initializer(-n, n)
             #b_init = tf.constant_initializer(0.0)
 
             out1 = tf.contrib.layers.conv2d(x, 12, [3,3], activation_fn=None, 
@@ -226,11 +228,13 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x.shape[3]) + dim)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #n = np.sqrt(6/(4 * 4 * (int(x.shape[3]) + dim)))
+            #c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             out = tf.contrib.layers.conv2d(x, dim, [3,3], stride, activation_fn=None, 
                     weights_initializer=c_init)
@@ -240,12 +244,14 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
+            #n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim1))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             concat_x = tf.concat((x1, x2), 3)
 
@@ -259,12 +265,14 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
+            #n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim1))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             concat_x2 = tf.concat((x1, x2), 3)
             concat_x3 = tf.concat((x1, x2, x3), 3)
@@ -312,10 +320,13 @@ class SparseResNet(object):
         with tf.variable_scope(scope): 
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
+            mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
             beta = tf.get_variable('beta', dimension, tf.float32,
                          initializer=tf.constant_initializer(0.0, tf.float32))
             gamma = tf.get_variable('gamma', dimension, tf.float32,
                          initializer=tf.constant_initializer(1.0, tf.float32))
+            bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
+            '''
             mu = tf.get_variable('mu', dimension, tf.float32,
                          initializer=tf.constant_initializer(0.0, tf.float32))
             sigma = tf.get_variable('sigma', dimension, tf.float32,
@@ -330,6 +341,7 @@ class SparseResNet(object):
                     return tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON    )
             else:
                 bn_layer = tf.nn.batch_normalization(input_layer, mu, sigma, beta, gamma, BN_EPSILON)
+            '''
          
             return bn_layer
 
