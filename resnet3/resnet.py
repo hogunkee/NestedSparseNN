@@ -63,15 +63,6 @@ class ResNet(object):
             x = tf.map_fn(lambda k: tf.random_crop(
                 tf.image.pad_to_bounding_box(k, 4, 4, 40, 40), [32, 32, 3]), 
                 x, dtype = tf.float32)
-        '''
-        def crop_pad(image):
-            image = tf.image.resize_image_with_crop_or_pad(image, self.image_size+4, self.image_size+4)
-            image = tf.random_crop(image, [self.image_size, self.image_size, 3])
-            return image
-
-        if and self.is_training==True:
-            x = tf.map_fn(lambda k: crop_pad(k), x, dtype=tf.float32)
-        '''
         
         h = self.conv(x, 16, 1, 'first')
         #h = self.conv_bn_relu(x, 16, 'first')
@@ -119,7 +110,7 @@ class ResNet(object):
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.random_normal_initializer(stddev=np.sqrt(2.0/(9*num_out)))
-            n = np.sqrt(6.0 / (3 * 3 * int(x.shape[3]) * num_out))
+            n = np.sqrt(6.0 / (3 * 3 * (int(x.shape[3]) + num_out)))
             c_init = tf.random_uniform_initializer(-n, n)
             b_init = tf.constant_initializer(0.0)
             return tf.contrib.layers.conv2d(x, num_out, [3,3], stride, activation_fn=None, 

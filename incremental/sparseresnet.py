@@ -147,7 +147,7 @@ class SparseResNet(object):
                 tf.get_variable_scope().reuse_variables()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
-            n = np.sqrt(6/(3*3*3*16))
+            n = np.sqrt(6/(3*3*(3+16)))
             c_init = tf.random_uniform_initializer(-n, n)
             #b_init = tf.constant_initializer(0.0)
 
@@ -236,7 +236,7 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * int(x.shape[3]) * dim))
+            n = np.sqrt(6/(4 * 4 * (int(x.shape[3]) + dim)))
             c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
@@ -250,7 +250,7 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * int(x1.shape[3]) * dim1))
+            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
             c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
@@ -269,7 +269,7 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * int(x1.shape[3]) * dim1))
+            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
             c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
