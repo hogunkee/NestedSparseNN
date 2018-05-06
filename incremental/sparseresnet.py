@@ -40,7 +40,9 @@ class SparseResNet(object):
         self.learning_rate2 = tf.placeholder(tf.float32, [], name = 'learning_rate2')
         self.learning_rate3 = tf.placeholder(tf.float32, [], name = 'learning_rate3')
 
-        x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+        x = tf.reshape(X, [-1, self.input_channel, self.image_size, self.image_size])
+        x = tf.cast(tf.transpose(x, [0, 2, 3, 1]), tf.float32)
+        #x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
         '''
         print('Image standardization')

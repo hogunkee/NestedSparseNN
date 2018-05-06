@@ -40,7 +40,9 @@ class ResNet(object):
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
 
-        x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+        x = tf.reshape(X, [-1, self.input_channel, self.image_size, self.image_size])
+        x = tf.cast(tf.transpose(x, [0, 2, 3, 1]), tf.float32)
+        #x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
         '''
         if self.dataset=='cifar10' and self.norm=='True':

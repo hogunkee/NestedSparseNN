@@ -12,6 +12,8 @@ mean_RGB = [[rgb, rgb, rgb] for i in range(32*32)]
 class SparseResNet(object):
     def __init__(self, config, is_training = False):
         self.num_classes = config.num_classes
+        self.num_classes2 = config.num_classes2
+        self.num_classes3 = config.num_classes3
 
         self.dataset = config.dataset
         self.lr = config.learning_rate
@@ -28,11 +30,15 @@ class SparseResNet(object):
 
 
         self.X = X =  tf.placeholder(tf.float32, shape = [None, self.input_channel*(self.image_size**2)], name = 'X_placeholder')
-        self.Y = Y = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y1_placeholder')
+        self.Y1 = Y1 = tf.placeholder(tf.float32, shape = [None, self.num_classes], name = 'Y1_placeholder')
+        self.Y2 = Y2 = tf.placeholder(tf.float32, shape = [None, self.num_classes2], name = 'Y2_placeholder')
+        self.Y3 = Y3 = tf.placeholder(tf.float32, shape = [None, self.num_classes3], name = 'Y3_placeholder')
 
         self.learning_rate = tf.placeholder(tf.float32, [], name = 'learning_rate')
 
-        x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
+        x = tf.reshape(X, [-1, self.input_channel, self.image_size, self.image_size])
+        x = tf.cast(tf.transpose(x, [0, 2, 3, 1]), tf.float32)
+        #x = tf.reshape(X, [-1, self.image_size, self.image_size, self.input_channel])
         ### pixel normalization ###
         '''
         print('Image standardization')
@@ -88,16 +94,16 @@ class SparseResNet(object):
         lv3 = tf.concat(h_layers[3:], 1)
 
         y1 = self.fc(lv1, self.num_classes, 'fc-lv1')
-        y2 = self.fc(lv2, self.num_classes, 'fc-lv2')
-        y3 = self.fc(lv3, self.num_classes, 'fc-lv3')
+        y2 = self.fc(lv2, self.num_classes2, 'fc-lv2')
+        y3 = self.fc(lv3, self.num_classes3, 'fc-lv3')
         
-        self.loss1 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=y1))
-        self.loss2 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=y2))
-        self.loss3 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y,logits=y3))
+        self.loss1 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y1,logits=y1))
+        self.loss2 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y2,logits=y2))
+        self.loss3 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=Y3,logits=y3))
 
-        correct_predict1 = tf.equal(tf.argmax(y1,1), tf.argmax(Y,1))
-        correct_predict2 = tf.equal(tf.argmax(y2,1), tf.argmax(Y,1))
-        correct_predict3 = tf.equal(tf.argmax(y3,1), tf.argmax(Y,1))
+        correct_predict1 = tf.equal(tf.argmax(y1,1), tf.argmax(Y1,1))
+        correct_predict2 = tf.equal(tf.argmax(y2,1), tf.argmax(Y2,1))
+        correct_predict3 = tf.equal(tf.argmax(y3,1), tf.argmax(Y3,1))
         self.accur1 = tf.reduce_mean(tf.cast(correct_predict1, tf.float32))
         self.accur2 = tf.reduce_mean(tf.cast(correct_predict2, tf.float32))
         self.accur3 = tf.reduce_mean(tf.cast(correct_predict3, tf.float32))
@@ -291,7 +297,8 @@ class SparseResNet(object):
                 tf.get_variable_scope().reuse_variables()
             #f_init = tf.truncated_normal_initializer(stddev=5e-2)
             #f_init = tf.contrib.layers.xavier_initializer()
-            f_init = tf.uniform_unit_scaling_initializer(factor=1.0)
+            #f_init = tf.uniform_unit_scaling_initializer(factor=1.0)
+            f_init = tf.variance_scaling_initializer(scale=1.0, distribution='uniform')
             b_init = tf.constant_initializer(0.0)
             return tf.contrib.layers.fully_connected(x, dim, activation_fn=None,
                     weights_initializer=f_init, biases_initializer=b_init)
