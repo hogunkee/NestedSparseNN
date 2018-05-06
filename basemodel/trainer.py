@@ -45,9 +45,18 @@ def run_epoch(session, model, data, level, printOn = False):
         y_ = data[1][iter*model.batch_size : (iter+1)*model.batch_size]
         x_norm = normalizer(x_)
 
-        vals = session.run(fetches, feed_dict = {
-            model.learning_rate: model.lr, 
-            model.X: x_norm, model.Y: y_})
+        feeddict = {
+                model.learning_rate: model.lr,
+                model.X: x_norm
+                }
+        if level==1:
+            feeddict[model.Y1] = y_
+        elif level==2:
+            feeddict[model.Y2] = y_
+        elif level==3:
+            feeddict[model.Y3] = y_
+
+        vals = session.run(fetches, feed_dict = feeddict) 
 
         loss = vals['loss']
         regul_loss = vals['regul_loss']

@@ -8,7 +8,12 @@ def main(config):
         config.outf = 'result'
     os.system('mkdir {0}'.format(config.outf))
 
-    DataLoader = Dataset(config.dataset, config.datapath, config.num_classes)
+    if config.level==1:
+            DataLoader = Dataset(config.dataset, config.datapath, config.num_classes)
+    elif config.level==2:
+            DataLoader = Dataset(config.dataset, config.datapath, config.num_classes2)
+    elif config.level==3:
+            DataLoader = Dataset(config.dataset, config.datapath, config.num_classes3)
     Input_train, Input_test = DataLoader(config.validation)
 
     ### writing results ###
