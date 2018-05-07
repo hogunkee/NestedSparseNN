@@ -150,11 +150,11 @@ class SparseResNet(object):
             #b_init = tf.constant_initializer(0.0)
 
             out1 = tf.contrib.layers.conv2d(x, 12, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, scope='l1')
+                    weights_initializer=c_init, scope='lv1')
             out2 = tf.contrib.layers.conv2d(x, 2, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, scope='l2')
+                    weights_initializer=c_init, scope='lv2')
             out3 = tf.contrib.layers.conv2d(x, 2, [3,3], activation_fn=None, 
-                    weights_initializer=c_init, scope='l3')
+                    weights_initializer=c_init, scope='lv3')
         return out1, out2, out3
 
     def res_block(self, x_list, out, scope, activate_before_residual=False):

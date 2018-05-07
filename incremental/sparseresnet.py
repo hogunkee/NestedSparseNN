@@ -149,8 +149,9 @@ class SparseResNet(object):
                 tf.get_variable_scope().reuse_variables()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
-            n = np.sqrt(6/(3*3*(3+16)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #n = np.sqrt(6/(3*3*(3+16)))
+            n = np.sqrt(2.0 / (3*3*16))
+            c_init = tf.random_normal_initializer(stddev = n)
             #b_init = tf.constant_initializer(0.0)
 
             out1 = tf.contrib.layers.conv2d(x, 12, [3,3], activation_fn=None, 
@@ -238,11 +239,12 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x.shape[3]) + dim)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #n = np.sqrt(6/(4 * 4 * (int(x.shape[3]) + dim)))
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #c_init = tf.contrib.layers.xavier_initializer()
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             out = tf.contrib.layers.conv2d(x, dim, [3,3], stride, activation_fn=None, 
                     weights_initializer=c_init)
@@ -252,12 +254,14 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
+            #n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim1))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             concat_x = tf.concat((x1, x2), 3)
 
@@ -271,12 +275,14 @@ class SparseResNet(object):
         with tf.variable_scope(scope):
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
-            n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
+            #n = np.sqrt(6/(4 * 4 * (int(x1.shape[3]) + dim1)))
             #n = np.sqrt(6 / (3 * 3 * int(x1.shape[3] + x2.shape[3]) * (dim1 + dim2)))
-            c_init = tf.random_uniform_initializer(-n, n)
+            #c_init = tf.random_uniform_initializer(-n, n)
             #c_init = tf.contrib.layers.xavier_initializer()
             #c_init = tf.truncated_normal_initializer(stddev=5e-2)
             #b_init = tf.constant_initializer(0.0)
+            n = np.sqrt(2.0 / (3*4*dim1))
+            c_init = tf.random_normal_initializer(stddev = n)
 
             concat_x2 = tf.concat((x1, x2), 3)
             concat_x3 = tf.concat((x1, x2, x3), 3)
@@ -295,7 +301,8 @@ class SparseResNet(object):
                 tf.get_variable_scope().reuse_variables()
             #f_init = tf.truncated_normal_initializer(stddev=5e-2)
             #f_init = tf.contrib.layers.xavier_initializer()
-            f_init = tf.uniform_unit_scaling_initializer(factor=1.0)
+            #f_init = tf.uniform_unit_scaling_initializer(factor=1.0)
+            f_init = tf.variance_scaling_initializer(scale=1.0, distribution='uniform')
             b_init = tf.constant_initializer(0.0)
             return tf.contrib.layers.fully_connected(x, dim, activation_fn=None,
                     weights_initializer=f_init, biases_initializer=b_init)
@@ -324,6 +331,7 @@ class SparseResNet(object):
         with tf.variable_scope(scope): 
             if not self.is_training:
                 tf.get_variable_scope().reuse_variables()
+            mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
             beta = tf.get_variable('beta', dimension, tf.float32,
                          initializer=tf.constant_initializer(0.0, tf.float32))
             gamma = tf.get_variable('gamma', dimension, tf.float32,
