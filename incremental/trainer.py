@@ -52,7 +52,7 @@ def run_epoch(session, model, data, data2, data3, train_mode, printOn = False):
                     'loss3' : model.loss3,
                     'accur1' : model.accur1,
                     'accur2' : model.accur2,
-                    'accur3' : model.accur2,
+                    'accur3' : model.accur3,
                     'regul_loss1' : model.regularizer1,
                     'regul_loss2' : model.regularizer2,
                     'regul_loss3' : model.regularizer3
