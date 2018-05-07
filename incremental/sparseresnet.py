@@ -328,6 +328,8 @@ class SparseResNet(object):
                          initializer=tf.constant_initializer(0.0, tf.float32))
             gamma = tf.get_variable('gamma', dimension, tf.float32,
                          initializer=tf.constant_initializer(1.0, tf.float32))
+            bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
+            '''
             mu = tf.get_variable('mu', dimension, tf.float32,
                          initializer=tf.constant_initializer(0.0, tf.float32))
             sigma = tf.get_variable('sigma', dimension, tf.float32,
@@ -342,6 +344,7 @@ class SparseResNet(object):
                     return tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON    )
             else:
                 bn_layer = tf.nn.batch_normalization(input_layer, mu, sigma, beta, gamma, BN_EPSILON)
+            '''
          
             return bn_layer
 

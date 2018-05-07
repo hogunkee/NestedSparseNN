@@ -335,9 +335,11 @@ class SparseResNet(object):
             bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
             '''
             mu = tf.get_variable('mu', dimension, tf.float32,
-                         initializer=tf.constant_initializer(0.0, tf.float32))
+                         initializer=tf.constant_initializer(0.0, tf.float32),
+                         trainable=False)
             sigma = tf.get_variable('sigma', dimension, tf.float32,
-                         initializer=tf.constant_initializer(1.0, tf.float32))
+                         initializer=tf.constant_initializer(1.0, tf.float32),
+                         trainable=False)
      
             if self.is_training is True:
                 mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
