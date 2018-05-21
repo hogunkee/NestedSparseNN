@@ -91,6 +91,11 @@ def main(config):
                 pfile.close()
 
                 ### if validation accuracy decreased, decrease learning rate ###
+                if (i>=100 and i<150):
+                    trainModel.lr = config.learning_rate / 10
+                elif (i>=150):
+                    trainModel.lr = config.learning_rate / 100
+                '''
                 count_epoch += 1
                 if (test_accur1<pre_val and test_accur2<pre_val2 and test_accur3<pre_val3):
                     count += 1
@@ -113,6 +118,7 @@ def main(config):
                 pre_val = test_accur1
                 pre_val2 = test_accur2
                 pre_val3 = test_accur3
+                '''
 
 
                 print("lv1 - test accur: %.3f" %test_accur1)

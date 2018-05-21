@@ -284,12 +284,11 @@ class SparseResNet(object):
             n = np.sqrt(2.0 / (3*4*dim1))
             c_init = tf.random_normal_initializer(stddev = n)
 
-            concat_x2 = tf.concat((x1, x2), 3)
             concat_x3 = tf.concat((x1, x2, x3), 3)
 
-            out1 = tf.contrib.layers.conv2d(x2, dim1, [3,3], stride, activation_fn=None, 
+            out1 = tf.contrib.layers.conv2d(x3, dim1, [3,3], stride, activation_fn=None, 
                     weights_initializer=c_init, scope='l1')
-            out2 = tf.contrib.layers.conv2d(concat_x2, dim2, [3,3], stride, 
+            out2 = tf.contrib.layers.conv2d(x3, dim2, [3,3], stride, 
                     activation_fn=None, weights_initializer=c_init, scope='l2')
             out3 = tf.contrib.layers.conv2d(concat_x3, dim3, [3,3], stride, 
                     activation_fn=None, weights_initializer=c_init, scope='l3')
