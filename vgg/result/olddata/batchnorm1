@@ -1,8 +1,0 @@
-dataset: cifar10
-image size: 32
-num epoch: 300
-batch size: 50
-initial learning rate: 0.01
-validation split: 0.1
-regularization rate: 0.0005
-drop out: 0.5
