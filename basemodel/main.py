@@ -75,9 +75,11 @@ def main(config):
 
                 ### if validation accuracy decreased, decrease learning rate ###
                 if (i>=100 and i<150):
-                    trainModel.lr = config.learning_rate / 10
+                    trainModel.lr = config.learning_rate / 5
                 elif (i>=150):
-                    trainModel.lr = config.learning_rate / 100
+                    trainModel.lr = config.learning_rate / 25
+                elif (i>=200):
+                    trainModel.lr = config.learning_rate / 125
                 '''
                 count_epoch += 1
                 if (test_accur < pre_val):

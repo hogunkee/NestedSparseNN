@@ -163,14 +163,17 @@ class ResNet(object):
                     initializer=tf.constant_initializer(1.0, tf.float32))
             bn_layer = tf.nn.batch_normalization(input_layer, mean, variance, beta, gamma, BN_EPSILON)
             '''
+            dimension = int(input_layer.shape[3])
             beta = tf.get_variable('beta', dimension, tf.float32,
                          initializer=tf.constant_initializer(0.0, tf.float32))
             gamma = tf.get_variable('gamma', dimension, tf.float32,
                          initializer=tf.constant_initializer(1.0, tf.float32))
             mu = tf.get_variable('mu', dimension, tf.float32,
-                         initializer=tf.constant_initializer(0.0, tf.float32))
+                         initializer=tf.constant_initializer(0.0, tf.float32),
+                         trainable=False)
             sigma = tf.get_variable('sigma', dimension, tf.float32,
-                         initializer=tf.constant_initializer(1.0, tf.float32))
+                         initializer=tf.constant_initializer(1.0, tf.float32),
+                         trainable=False)
      
             if self.is_training is True:
                 mean, variance = tf.nn.moments(input_layer, axes=[0, 1, 2])
